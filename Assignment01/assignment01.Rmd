@@ -1,0 +1,74 @@
+---
+title: "Assignment 1"
+output: pdf_document
+---
+
+```{r,warning=FALSE,message=FALSE,eval=FALSE,echo=FALSE}
+library(fjolst)
+library(dplyr)
+library(data.table)
+
+stations <- 
+  stodvar %>% 
+  filter(synaflokkur == 30) 
+
+samples <- 
+    all.le %>%
+    filter(synis.id %in% stations$synis.id) %>%# &
+#           tegund %in% species.key$tegund) %>%
+    group_by(synis.id,tegund) %>%
+    left_join(stations) %>%
+#    left_join(species.key) %>%
+    left_join(data.table(all.nu)) %>%
+    mutate(count=fjoldi,
+           sex = c('M','F')[pmax(1,kyn)],
+           age = 0,
+           month = man,
+           sampling_type = 'SEA',
+           maturity_stage = pmax(1,pmin(kynthroski,2))) 
+
+```
+
+# Introduction 
+The dataset in this excercise was collected from the Icelandic groundfish survey, which has been conducted every year since 1984 and features between 530 and 600 haul stations. In the survey, up to 155 unique species have been identified and recorded although the main focus is in the top commercially exploited species such as cod, halibut and saithe. It is used as a basis for assessment for nearly all of the key exploited species and provides valuable information on state of the ecosystem. 
+
+The survey occurs in March every year with sample hauls (stations) taken on more than 500 at fixed locations. For each station the catch is analysed, species identified and length recorded. Age, sex, weight and maturity is recorded for a subsample. 
+
+Each student will be assigned a species according to the following table, which the student will use in this excercies
+
+
+Name  | Species | Shortname
+----- | ------- | ---------
+Jón   | Dragons | DRG
+Gunna | Goblins | GOB
+
+
+# Read in and describe the data
+In the folder ''species'' you will find files names according to the shortname in the table above. Read in your species into R and summarise the data (hint: use ''summary'' and ''str''). 
+
+* What variables are in the dataset?
+* How many obervations are in the data?
+* Are there any missing values? 
+    + If so, where and why?
+
+## Compile statistics
+* Find the total number of survey stations where the species have been observed
+    + How does this vary by year, calculate the number of survey stations by year
+    + Plot the number of survey stations by year 
+    
+* Number of individuals caught in the survey fluctuates from year to year. Illustrate this by:
+    + calculating the number of samples per year and produce a table 
+    + creating a bar-plot of the number individuals per year
+    + **Bonus**: indicate spatial changes by assigning different fill color to fish caught north of 65° degrees latitude
+    
+* Investigate the age length relationship:
+    + Plot a scatterplot of age and length  
+    + Plot a boxplot of age and length
+    + **Bonus**: Fit a Von Bertalanffy curve to the age length data 
+
+* Investigate changes of over time:
+    + Plot length distributions by year
+    + Calculate mean length by year
+
+# Illustrating spatial effects
+
