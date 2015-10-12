@@ -1,0 +1,446 @@
+% SLIDES - brug denne linie
+\documentclass[mathserif]{beamer} % options: gray
+
+% HANDOUTS - brug denne linie
+%\documentclass[handout,mathserif]{beamer} % options: gray
+
+\usetheme{CambridgeUS} %sidebar
+\usecolortheme{dolphin}
+
+\usepackage{graphicx}
+\usepackage{amssymb,amsmath}
+\usepackage[T1]{fontenc}
+%\usepackage[icelandic]{babel}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{bm}
+\usepackage{tipx}
+\usepackage{marvosym}
+%\usepackage{subfigure}
+\usepackage{pgfpages}
+\usepackage{multirow}
+
+% hvis man vil har eg. 4 slides på en side
+% \pgfpagesuselayout{4 on 1}[a4paper,border shrink = 5mm, landscape]
+
+\definecolor{lgrey}{RGB}{245,245,245}
+\setbeamercolor{block body}{fg=black,bg=lgrey}
+\DeclareMathOperator{\var}{Var}
+\DeclareMathOperator{\cov}{Cov}      % Covariance
+\DeclareMathOperator{\bcov}{\cov}    % Covariance (as used in the GLM book)
+\DeclareMathOperator{\mcov}{C}       % multi dimensional covariance
+\DeclareMathOperator{\dis}{D}        % dispersion matrix
+\DeclareMathOperator{\acfest}{C}     % estimate of the autocovariance function
+\DeclareMathOperator{\e}{E}          % mean
+\DeclareMathOperator{\mean}{\e}      % mean (as used in the GLM book)
+\DeclareMathOperator{\cor}{Cor}      % correlation
+\DeclareMathOperator{\diag}{diag}    % diagonal-matrix
+\DeclareMathOperator{\rang}{rank}    % matrix-rank
+\DeclareMathOperator{\for}{for}    % for
+\DeclareMathOperator{\FOp}{F}        % forward shift operator
+\DeclareMathOperator{\SOp}{S}        % sum operator
+\DeclareMathOperator{\HOp}{H}        % arbitrary operator
+\DeclareMathOperator{\Real}{Re}      % real-part
+\DeclareMathOperator{\Imag}{Im}      % imaginary-part
+\DeclareMathOperator*{\member}{\in}  % belongs to or is an element in
+\DeclareMathOperator{\msea}{MSE1}    % Mean Square Error 1
+\DeclareMathOperator{\mseb}{MSE2}    % Mean Square Error 2
+\DeclareMathOperator{\sse}{SSE}      % Sum of Squared Errors
+\DeclareMathOperator{\ssb}{SSB}      % Sum of Squared Blocks
+\DeclareMathOperator{\sst}{SST}      % Sum of Squared Treatments
+\DeclareMathOperator{\adj}{adj}      % Just guessing...
+
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\bi}{\begin{itemize}\item}
+\newcommand{\ei}{\end{itemize}}
+\newcommand{\eq}[1]{\begin{equation} #1 \end{equation}}
+\newcommand{\ea}[1]{\begin{eqnarray} #1 \end{eqnarray}}
+\newcommand{\vs}{\vspace{2mm}}
+
+\definecolor{Red}{rgb}{0.9,0,0.1}
+
+\title[Data mining]{Data mining}
+\subtitle{Course on data wrangling using R at the UNU}
+\author[Bjarki]{Bjarki Þór Elvarsson}
+\date{} % beskidt .. men det virker
+\institute[MRI]{Marine Research Institute}
+\beamertemplatenavigationsymbolsempty % fjerner pdf-indhold, til hvis der bare skal printes slides ud
+\AtBeginSection[]{
+\begin{frame}<beamer>
+   \frametitle{Overview}
+   \tableofcontents[currentsection]
+ \end{frame}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<<echo=FALSE, warning=FALSE, message=FALSE>>=
+library(ggplot2)
+library(dplyr)
+@
+\frame{
+\titlepage
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\frame{
+\frametitle{Overview}
+\tableofcontents
+}
+
+\section{Introduction}
+\frame{
+  \frametitle{Organization}
+  This course is thought of as a support class for other classes in the stock assessment line. During the course the students will learn how to: 
+  \bi Import data from various sources and fix common data issues
+%  \vs
+  \item Produce summary statistics from the data
+%  \vs
+  \item Illustrate graphically various aspects of the data
+%  \vs
+  \item Simple least squares fitting
+  \ei 
+\vs
+The course is organized as follows:
+  \bi Focus is on in-class assignments with bits of lectures in between
+  \item Each student will be assigned a species to work with
+  \item Each student should hand in a short report of the class assignment
+  \ei
+}
+
+
+\section{RStudio}
+\frame{
+\frametitle{RStudio}
+
+\bi RStudio allows the user to run R in a more user-friendly environment.  It is open- source (i.e. free) and available at \url{www.rstudio.com}
+
+\item built to help you write R code, run R code, and analyze data with R
+\item text editor, version control, project handling, markdown support, keyboard shortcuts, debugging tools, and much more
+\ei
+}
+
+\section{Graphical presentation}
+\frame{
+  \frametitle{The state of R-graphics}
+  \bi Base R is rich with facilities for creating and developing
+  interesting graphics. 
+  \vs
+\item Contains most basic functionality s.a. scatter--plots,
+  boxplots etc..
+  \vs
+\item Various specialized packages have been developed to meet certain
+  needs (sp, geo, verification, etc..)
+  \vs
+\item Images/plots can be exported to various file formats.  
+  \ei
+}
+
+\frame{
+  \frametitle{Base R}
+  \bi Graphs are displayed on a static device. 
+  \vs
+\item User draws to the device through plotting commands. 
+\vs 
+\item Objects can not be edited without redrawing the whole plot.
+\vs
+\item One can quickly run into problems with complex layouts
+  s.a. facetting, variable scaling. 
+\vs
+\item  Interactive analysis of data can be cumbersome in all but
+  trivial cases.
+  \ei
+}
+
+\frame{
+\frametitle{Alternatives}
+\bi To address some of the issues of base R's graphic system \texttt{grid}
+was developed:
+\bi a low--level graphics system.
+\item Allows a great deal of flexibility
+\item No high--level functionality.
+\ei
+\vs
+\item Various packages use \texttt{grid} as a basis for high--level
+  graphics. Notably:
+\bi \texttt{lattice} which is an R implementation of William
+Cleveland's trellis system. 
+\item \texttt{ggplot2} which is an implementation of a layered grammar
+  of graphics by Hadley Wickham (and inspired by Leland Wilkinson). 
+\ei
+\ei
+}
+
+\frame{
+\frametitle{Dataset}
+We are going to play around a bit with data from the Scientific
+whaling operation in Icelandic waters. 
+\bi ID: identification
+\item age: age of the animal estimated using eye lens deterioration
+\item length: length in cm 
+\item sex: Male/Female
+\item location: latitude and longitude
+\item bormicon.areas: area where samples were taken 
+\item NS: the region (North/South) where samples were taken
+\item Maturity: detailed maturity of the animal
+\item date.caught: date of the sample
+\item year: year of the sample
+\item ...: and other variables not used here
+\ei 
+}
+
+\begin{frame}[fragile,shrink=0.5]
+\frametitle{Read in the data}
+<<>>=
+## data read in using read.table
+minke <- read.table('../data/minke.csv',header=TRUE, sep=';')
+ 
+str(minke)
+
+@
+
+\end{frame}
+
+
+\section{ggplot2}
+\frame{
+  \frametitle{ggplot2}
+  \bi Plots are built by layering graphical components
+  \vs
+\item A ggplot layer is composed of four parts:
+  \bi data and aesthetic mapping
+\item Statistical transformations (stat\_*)
+\item  Geometric object (geom\_*)
+\item Position adjustment
+  \ei
+  \vs
+\item Usually some common elements between layers (e.g. same data,
+  different geoms)
+  \vs
+\item Defaults are used for the layers whenever components are not
+  specified.
+  \vs
+\item The components are summed together to form the plot
+\ei
+
+}
+
+\begin{frame}[fragile]
+<<>>=
+## empty plot
+p <- ggplot()
+
+## add layer to the plot
+
+p + layer(data=minke, mapping=aes(x=age, y=length), 
+  geom = 'point', stat='identity', position = 'identity')
+
+@
+
+
+\end{frame}
+
+\begin{frame}[fragile]
+
+<<>>=
+## alternatively
+
+p + geom_point(aes(age,length), data = minke)
+
+## or with global data and aes mapping
+
+ggplot(minke,aes(age,length)) + geom_point()
+@
+
+\end{frame}
+
+
+\frame{
+\frametitle{What are Aesthetic Mappings}
+Aesthetic mappings define the role of different variables in the
+dataset.
+\bi x and y -- dimensions, size, color, fill, symbols, etc.
+\vs
+\item Aesthetics can be constants or variable.
+\vs 
+\item Define using aes() and can be defined globally (within the
+  starting ggplot command) or locally within layers.
+\ei
+}
+
+\subsection{Layers}
+\frame{
+\frametitle{Defining Layers}
+\bi The full specification of a layer is rather complicated where each component of a layer needs to specified:\\
+\vs 
+\item The layering approach allows sane defaults to be used for most components of the layers. 
+\vs
+\item Special types of layers s.a. scatterplots are predefined.
+\vs
+\item Layers are added to a graph by '+'
+\ei
+}
+
+
+
+\frame{
+\frametitle{Geoms}
+Example geom layers (not exhaustive)
+\bi \texttt{geom\_histogram()}  - histogram
+\vs
+\item \texttt{geom\_bar()} - bar--plot
+\vs
+\item \texttt{geom\_boxplot()} - boxplot
+\vs
+\item \texttt{geom\_point()} - scatterplot
+\vs
+\item \texttt{geom\_smooth()} - loess--smoother
+\ei
+
+}
+
+\frame{
+\frametitle{Colors}
+
+\bi One can play with assigning colors to points and other objects by
+variable:
+\vs
+\item Colour is controled by  \texttt{aes(...,colour=variable)}
+\vs
+\item Example:
+\texttt{ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point()}
+\vs
+\item If the geom is ``fillable'' one can use  \texttt{aes(...,fill=variable)}
+\ei
+}
+
+\frame{
+\frametitle{Position}
+\bi Barplots that are split between values of factor can place either side by side (''dodged'') or stacked on top of each other
+\bi Dodge:\\
+\texttt{ggplot(diamonds,aes(color,fill=cut)) + geom\_bar(position='dodge')}
+\vs
+\item Stack:\\
+\texttt{ggplot(diamonds,aes(color,fill=cut)) + geom\_bar(position='stack')}\\
+\ei
+\vs
+\item Overlapping point in a scatterplot can be ``jittered''. 
+
+\bi \texttt{ggplot(diamonds,aes(cut,price) + geom\_point(position='jitter')}
+\ei
+\ei
+}
+
+
+
+\frame{
+\frametitle{Stats}
+\bi Used for plotting statistics/summaries
+\bi e.g. mean of the response at fixed levels of the predictior
+\item or non-standard box--plots
+\ei
+\vs
+\item Specified using prefix stat\_ and suffix that names the desired
+  transformation:
+\bi Means, meadians etc.. specified with stat\_summary()
+\item Regression models with stat\_smooth()
+\item Mathematical formulae and functions can be drawn with stat\_function()
+\ei
+\ei
+}
+
+
+
+\subsection{Facets}
+\frame{
+  \frametitle{Faceting}
+  Plots can be faceted by one (or more) factor(s): \\ \vs
+  \texttt{facet\_grid()} - facets by a fixed grid according the factorlevels.
+  \bi \texttt{ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point()  + facet\_grid($\sim$ color)} \\
+\item \texttt{ggplot(ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point()  + facet\_grid(clarity$\sim$ color)} \\
+  \ei
+  \vs
+  \texttt{facet\_wrap()} - neatly wraps facets by factorlevels between rows: \\ 
+  \bi \texttt{ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point()  + facet\_wrap($\sim$ color)} \\
+\item \texttt{ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point()   + facet\_wrap($\sim$ color + cut)} \\
+  \ei
+
+}
+
+
+\subsection{Appearance}
+
+
+
+\frame{
+\frametitle{Labels}
+\bi \texttt{xlab()} - Assigns name to the x-axis 
+\vs
+\item \texttt{ylab()} - Assigns name to the y-axis 
+\vs
+\item \texttt{theme(legend.position="none")} removes the legend 
+\vs
+\item \texttt{ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point() + xlab('verd') + ylab('skurdur') + theme(legend.position="none")}
+\ei
+}
+
+
+
+\frame{
+\frametitle{Scales}
+Colorpalettes can be changed at the users discretion:
+
+\bi \texttt{scale\_fill\_brewer()} - scales from colourbrewer2.org
+\vs
+\item \texttt{scale\_fill\_manual(values=c("\#CC6666", "\#9999CC", "\#66CC99"))} -- manual scales.
+\vs
+\item \texttt{scale\_fill\_continuous()} - continous scale \\
+\vs
+\item \texttt{scale\_fill\_discrete()} - discrete scale\\
+\vs
+\ei
+}
+
+\frame{
+\frametitle{Themes}
+ggplot2 is supplied with two themes:
+
+\bi theme\_grey -- default background theme
+\vs 
+\item theme\_bw -- white background, darker gridlines.
+\vs
+\item User can define its own theme (or update the current) using the theme command
+\vs
+\item Additional themes can be found in other packages extending ggplot2.
+\ei
+
+}
+
+\section{Example}
+
+\frame{
+
+%\includegraphics[width=0.8\linewidth]{../../Greinar/MinkeSurvey/Article/Figures/Fig1.pdf}
+}
+
+
+\frame{
+  \frametitle{Extending ggplot2}
+  \bi ggmaps -- embeds online maps (openstreetmap, google maps, etc..) as layer. 
+  \vs
+\item gridExtra -- based on \texttt{grid} and allow mixing grid objects to a single plot device
+  \vs 
+\item ggthemes -- new color themes to ggplot2.
+\ei
+}
+
+\frame{
+\frametitle{On--line resources}
+\bi docs.ggplot2.org
+\vs
+\item stackoverflow.com
+\ei
+}
+
+\section{Data summaries}
+
+\end{document}

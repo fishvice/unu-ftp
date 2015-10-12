@@ -72,3 +72,7 @@ In the folder ''species'' you will find files names according to the shortname i
 
 # Illustrating spatial effects
 
+
+# Report 
+Produce a short report of your findings with the R-code you used. 
+
