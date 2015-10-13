@@ -76,6 +76,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 <<echo=FALSE, warning=FALSE, message=FALSE>>=
 library(ggplot2)
+library(plyr)
 library(dplyr)
 @
 \frame{
@@ -224,34 +225,7 @@ str(minke)
 
 }
 
-\begin{frame}[fragile]
-<<>>=
-## empty plot
-p <- ggplot()
 
-## add layer to the plot
-
-p + layer(data=minke, mapping=aes(x=age, y=length), 
-  geom = 'point', stat='identity', position = 'identity')
-
-@
-
-
-\end{frame}
-
-\begin{frame}[fragile]
-
-<<>>=
-## alternatively
-
-p + geom_point(aes(age,length), data = minke)
-
-## or with global data and aes mapping
-
-ggplot(minke,aes(age,length)) + geom_point()
-@
-
-\end{frame}
 
 
 \frame{
@@ -281,22 +255,105 @@ dataset.
 }
 
 
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{ggplot -- first principles}
+<<warning=FALSE,fig.height=5>>=
+## create a empty plot
+p <- ggplot()
 
-\frame{
-\frametitle{Geoms}
-Example geom layers (not exhaustive)
-\bi \texttt{geom\_histogram()}  - histogram
-\vs
-\item \texttt{geom\_bar()} - bar--plot
-\vs
-\item \texttt{geom\_boxplot()} - boxplot
-\vs
-\item \texttt{geom\_point()} - scatterplot
-\vs
-\item \texttt{geom\_smooth()} - loess--smoother
-\ei
+## add layer to the plot
 
-}
+p + layer(data=minke, mapping=aes(x=age, y=length), 
+  geom = 'point', stat='identity', position = 'identity')
+
+@
+
+
+\end{frame}
+
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{ggplot -- defaults}
+Alternatively
+
+<<warning=FALSE,fig.height=5>>=
+
+p + geom_point(aes(age,length), data = minke)
+
+@
+
+\end{frame}
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{ggplot -- defaults}
+
+With global data and aes mapping
+
+<<warning=FALSE,fig.height=5>>=
+ggplot(minke,aes(age,length)) + geom_point()
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{Example geoms -- histogram}
+
+<<warning=FALSE,fig.height=5,message=FALSE>>=
+ggplot(minke, aes(length)) + geom_histogram()
+@
+
+\end{frame}
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{Example geoms -- bar-plot}
+
+<<warning=FALSE,fig.height=5>>=
+ggplot(minke, aes(maturity)) + geom_bar()
+@
+
+\end{frame}
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{Example geoms -- bar-plot}
+
+<<warning=FALSE,fig.height=5>>=
+ggplot(minke, aes(maturity,fill=sex)) + geom_bar()
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{Example geoms -- box-plot}
+
+<<warning=FALSE,fig.height=5>>=
+ggplot(minke, aes(age, length, group = round_any(age,5))) + 
+  geom_boxplot()
+@
+
+\end{frame}
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{Example geoms -- combination}
+
+<<warning=FALSE,fig.height=5>>=
+ggplot(minke, aes(age, length, group = round_any(age,5))) + 
+  geom_boxplot() + geom_point()
+@
+
+\end{frame}
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{Example geoms -- combination}
+
+<<warning=FALSE,fig.height=5>>=
+ggplot(minke, aes(age, length, group = round_any(age,5))) + 
+  geom_boxplot() + geom_point(aes(age,length,col=sex)) 
+@
+
+\end{frame}
+
 
 \frame{
 \frametitle{Colors}
@@ -442,5 +499,95 @@ ggplot2 is supplied with two themes:
 }
 
 \section{Data summaries}
+\frame{
+\frametitle{dplyr}
+\bi dplyr is a set of tools for a common set of problems connected to
+aggregates or summaries of data. 
+\vs
+\item Similar to ggplot2 it features a Domain Specific Language (DSL)
+  specially designed for data summaries.  
+\vs
+\item Developed by Hadley Wickam, the creator ggplot2 and other
+  useful tools.
+\ei
+
+}
+
+\frame{
+\frametitle{Summarising data for groups}
+Commonly, when collating summaries by group, one wants to:  
+\bi \textbf{Split} up a big data structure into homogeneous pieces, 
+\vs
+\item \textbf{Apply} a function to each piece 
+\vs
+\item \textbf{Combine} all the results back together.
+\ei
+
+For example, one might want to
+
+\bi fit the same model each patient subsets of a data frame
+\vs
+\item quickly calculate summary statistics for each group
+\vs
+\item perform group-wise transformations like scaling or standardising
+\ei
+}
+
+\begin{frame}[fragile]
+\frametitle{Modifying columns}
+If one wants to create a new variable (column) into the data sets one can either:
+
+<<eval=FALSE>>=
+minke$new.col <- minke$ID + 3
+@
+
+or use mutate
+
+<<eval=FALSE>>=
+minke <- mutate(minke,ID = ID + 3)
+@
+
+This probably not very useful until you want to create many variables at once:
+
+<<eval=FALSE>>=
+minke <- mutate(minke,
+                ID.1 = ID + 3,
+                ID.2 = ID.1 + 4,
+                ID.3 = ID*3)
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Creating summaries}
+Similarly one can create summaries from the data using the summarise function:
+<<>>=
+summarise(minke,num.obs = length(whale.id))
+@
+
+And new summaries can be added:
+
+<<>>=
+summarise(minke, 
+          num.obs = length(whale.id), 
+          num.fem=sum(sex=='Female'), 
+          num.large=sum(length>650))
+@
+
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Split - apply - combine}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Creating summaries}
+
+
+\end{frame}
+
 
 \end{document}
