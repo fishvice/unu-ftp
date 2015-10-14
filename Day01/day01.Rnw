@@ -20,6 +20,17 @@
 \usepackage{pgfpages}
 \usepackage{multirow}
 
+\usepackage{tikz,makecell}
+\usetikzlibrary{arrows,decorations.pathmorphing,decorations.footprints,
+fadings,calc,trees,mindmap,shadows,decorations.text,patterns,positioning,shapes,matrix,fit}
+\input{graphical_settings}
+\tikzset{
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1{}{invisible}}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+  },
+}
 % hvis man vil har eg. 4 slides på en side
 % \pgfpagesuselayout{4 on 1}[a4paper,border shrink = 5mm, landscape]
 
@@ -108,17 +119,135 @@ The course is organized as follows:
   \ei
 }
 
+\frame{
+  \frametitle{Why R? (.. or why not Excel)}
+  R has become the lingua france of statistical analysis and data wrangling
+  \vs
+  \bi It’s free! If you are a teacher or a student, the benefits are obvious
+  \vs
+  \item It runs on a variety of platforms including Windows, Unix and MacOS
+  \vs
+  \item It provides an unparalleled platform for programming new statistical
+methods in an easy and straightforward manner
+  \vs 
+  \item It offers powerful tools for data exploration and presentation
+  \ei
+
+}
 
 \section{RStudio}
 \frame{
 \frametitle{RStudio}
 
 \bi RStudio allows the user to run R in a more user-friendly environment.  It is open- source (i.e. free) and available at \url{www.rstudio.com}
-
+\vs
 \item built to help you write R code, run R code, and analyze data with R
+\vs
 \item text editor, version control, project handling, markdown support, keyboard shortcuts, debugging tools, and much more
 \ei
 }
+
+\frame{
+\frametitle{Using R-studio}
+  
+   \begin{tikzpicture}
+    \node[anchor=south west,inner sep=0] at (0,0) {\includegraphics[width=0.8\textwidth]{rstudio}};
+    \node[red,ultra thick,visible on=<2->] at (2,2) {R - console};
+    \node[red,ultra thick,visible on=<3->] at (8,5) {Session info};
+    \node[red,ultra thick,visible on=<4->] at (2,5) {Script editor};
+    \node[red,ultra thick,visible on=<5->] at (8,2) {Other items};
+\end{tikzpicture}
+
+}
+
+\begin{frame}[fragile]
+\frametitle{R-console}
+One can type commands directly into the console to perform calculations:
+<<>>=
+1+1 ## this should be 2 
+mean(c(1,2,3,4,5)) ## mean of all numbers from 1 to 5
+@
+and assign the results with the "<-" sign:
+<<>>=
+x <- 1+1 ## save the result into a variable named x
+x        ## print out the value of x to screen 
+@
+
+\end{frame}
+
+\frame{
+\frametitle{Session info}
+  \begin{columns}
+  \begin{column}{0.5\linewidth}
+  \bi \textbf{Environment}: Contains a list of all declared variables. If you have a dataset you can double click the variable to view the data
+  \vs
+  \vs
+  \item \textbf{History}: Contains a list of all previous commands entered into the console.
+\ei
+  \end{column}
+  \begin{column}{0.5\linewidth}
+  \includegraphics[width=0.9\linewidth]{env.png}\\
+  \vs
+  \includegraphics[width=0.9\linewidth]{hist.png}
+  \end{column}
+  \end{columns}
+}
+
+
+\frame{
+\frametitle{Script editor}
+  \bi Is opened when selecting File->New file->R script from the menu panel
+  \vs
+  \item A R script is basically a series of R commands that can be run in the console 
+  \vs
+  \item It is recommended to store all commands that "work" in a script for later reconstruction of a particular analysis
+  \vs
+  \item It is possible to run a single line in a script by pressing [ctrl]+Enter or the \includegraphics[width=0.1\linewidth]{button.png}  button in the top right corner
+  \ei
+}
+
+\frame{
+\frametitle{Other items}
+  \bi \textbf{Files}: Shows files on the computer. The user can change the working directory (where R reads data-files and scripts from) by selecting "more->Set as working directory"
+  \vs
+  \item \textbf{Plots}: Graphical output from R. The user can export these the figures to file or clipboard
+\ei
+}
+
+\frame{
+\frametitle{Project}
+  \bi Rstudio allows us to make things a little bit easier to isolate the task we are working with a any given point by defining specific \textbf{projects}
+  \vs
+  \item Projects save the state between sessions. This inludes:
+  \bi Working directories
+  \item Open files/scripts
+  \item Workspaces
+  \item Color scheme
+  \ei
+  \vs
+  \item Projects are created by selecting File->New project
+  \ei
+}
+
+\frame{
+\frametitle{Turning R off}
+  When shutting down R and Rstudio it reminds you to save your work: \\ \vs
+  \includegraphics[width=0.5\linewidth]{shutdown.png}\\ \vs
+  In general you should \textbf{not} save your workspace
+
+}
+
+\frame{
+  \frametitle{Excercise 1}
+  \bi Create a folder under your Documents folder and name it 'Class excercise' 
+  \item Open R-studio and create a new project and associate it with the newly created directory
+  \item Create a new script named 'Ex1.R'
+  \item Write a script that calculates the sum of all numbers from 1 to 100
+\ei
+}
+
+\section{Using R as a calculator}
+\frame
 
 \section{Graphical presentation}
 \frame{
