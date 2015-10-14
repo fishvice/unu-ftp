@@ -342,40 +342,41 @@ max()        # largest value
   \ei
 }
 
-\frame{
-  \frametitle{Base R}
-  \bi Graphs are displayed on a static device. 
-  \vs
-\item User draws to the device through plotting commands. 
-\vs 
-\item Objects can not be edited without redrawing the whole plot.
-\vs
-\item One can quickly run into problems with complex layouts
-  s.a. facetting, variable scaling. 
-\vs
-\item  Interactive analysis of data can be cumbersome in all but
-  trivial cases.
-  \ei
-}
+%\frame{
+%  \frametitle{Base R}
+%  \bi Graphs are displayed on a static device. 
+%  \vs
+%\item User draws to the device through plotting commands. 
+%\vs 
+%\item Objects can not be edited without redrawing the whole plot.
+%\vs
+%\item One can quickly run into problems with complex layouts
+%  s.a. facetting, variable scaling. 
+%\vs
+%\item  Interactive analysis of data can be cumbersome in all but
+%  trivial cases.
+%  \ei
 
-\frame{
-\frametitle{Alternatives}
-\bi To address some of the issues of base R's graphic system \texttt{grid}
-was developed:
-\bi a low--level graphics system.
-\item Allows a great deal of flexibility
-\item No high--level functionality.
-\ei
-\vs
-\item Various packages use \texttt{grid} as a basis for high--level
-  graphics. Notably:
-\bi \texttt{lattice} which is an R implementation of William
-Cleveland's trellis system. 
-\item \texttt{ggplot2} which is an implementation of a layered grammar
-  of graphics by Hadley Wickham (and inspired by Leland Wilkinson). 
-\ei
-\ei
-}
+%}
+
+%\frame{
+%\frametitle{Alternatives}
+%\bi To address some of the issues of base R's graphic system \texttt{grid}
+%was developed:
+%\bi a low--level graphics system.
+%\item Allows a great deal of flexibility
+%\item No high--level functionality.
+%\ei
+%\vs
+%\item Various packages use \texttt{grid} as a basis for high--level
+%  graphics. Notably:
+%\bi \texttt{lattice} which is an R implementation of William
+%Cleveland's trellis system. 
+%\item \texttt{ggplot2} which is an implementation of a layered grammar
+%  of graphics by Hadley Wickham (and inspired by Leland Wilkinson). 
+%\ei
+%\ei
+%}
 
 \frame{
 \frametitle{Dataset}
@@ -407,11 +408,15 @@ str(minke)
 
 \end{frame}
 
+  
 
-\section{ggplot2}
+
+
 \frame{
   \frametitle{ggplot2}
-  \bi Plots are built by layering graphical components
+  \bi In this course we will focus on the abilities of the ggplot2 plotting package
+  \vs
+  \item In ggplot2, plots are built by layering graphical components
   \vs
 \item A ggplot layer is composed of four parts:
   \bi data and aesthetic mapping
@@ -431,36 +436,6 @@ str(minke)
 
 }
 
-
-
-
-\frame{
-\frametitle{What are Aesthetic Mappings}
-Aesthetic mappings define the role of different variables in the
-dataset.
-\bi x and y -- dimensions, size, color, fill, symbols, etc.
-\vs
-\item Aesthetics can be constants or variable.
-\vs 
-\item Define using aes() and can be defined globally (within the
-  starting ggplot command) or locally within layers.
-\ei
-}
-
-\subsection{Layers}
-\frame{
-\frametitle{Defining Layers}
-\bi The full specification of a layer is rather complicated where each component of a layer needs to specified:\\
-\vs 
-\item The layering approach allows sane defaults to be used for most components of the layers. 
-\vs
-\item Special types of layers s.a. scatterplots are predefined.
-\vs
-\item Layers are added to a graph by '+'
-\ei
-}
-
-
 \begin{frame}[fragile,shrink=0.95]
 \frametitle{ggplot -- first principles}
 <<warning=FALSE,fig.height=5>>=
@@ -478,9 +453,23 @@ p + layer(data=minke, mapping=aes(x=age, y=length),
 \end{frame}
 
 
+\subsection{Layers}
+\frame{
+\frametitle{Defining Layers}
+\bi The full specification of a layer is rather complicated where each component of a layer needs to specified:\\
+\vs 
+\item The layering approach allows sane defaults to be used for most components of the layers. 
+\vs
+\item Special types of layers s.a. scatterplots are predefined.
+\vs
+\item Layers are added to a graph by '+'
+\ei
+}
+
+
 \begin{frame}[fragile,shrink=0.95]
 \frametitle{ggplot -- defaults}
-Alternatively
+Alternatively one can use these more sane defaults
 
 <<warning=FALSE,fig.height=5>>=
 
@@ -489,6 +478,22 @@ p + geom_point(aes(age,length), data = minke)
 @
 
 \end{frame}
+
+
+
+\frame{
+\frametitle{What are Aesthetic Mappings (aes)}
+Aesthetic mappings define the role of different variables in the
+dataset.
+\bi x and y -- dimensions, size, color, fill, symbols, etc.
+\vs
+\item Aesthetics can be constants or variable.
+\vs 
+\item Define using aes() and can be defined globally (within the
+  starting ggplot command) or locally within layers.
+\ei
+}
+
 
 \begin{frame}[fragile,shrink=0.95]
 \frametitle{ggplot -- defaults}
@@ -520,14 +525,43 @@ ggplot(minke, aes(maturity)) + geom_bar()
 
 \end{frame}
 
+\frame{
+\frametitle{Colors}
+
+\bi One can play with assigning colors to points and other objects by
+variable:
+\vs
+\item Colour is controled by  \texttt{aes(...,colour=variable)}
+\vs
+\item If the geom is ``fillable'' one can use  \texttt{aes(...,fill=variable)}
+\ei
+}
+
 \begin{frame}[fragile,shrink=0.95]
-\frametitle{Example geoms -- bar-plot}
+\frametitle{Example geoms -- bar-plot, now with color}
 
 <<warning=FALSE,fig.height=5>>=
 ggplot(minke, aes(maturity,fill=sex)) + geom_bar()
 @
 
 \end{frame}
+
+\begin{frame}[fragile,shrink=0.9]
+\frametitle{Position}
+Barplots that are split between values of factor can place either side by side (''dodged'') or stacked on top of each other. 
+\bi Stacked 
+<<warning=FALSE,eval=FALSE,fig.height=5>>=
+ggplot(minke, aes(maturity,fill=sex)) + geom_bar()
+@
+\item Dodged:
+<<warning=FALSE,fig.height=5>>=
+ggplot(minke, aes(maturity,fill=sex)) + geom_bar(position='dodge')
+@
+\ei
+
+\end{frame}
+
+
 
 
 \begin{frame}[fragile,shrink=0.95]
@@ -541,7 +575,7 @@ ggplot(minke, aes(age, length, group = round_any(age,5))) +
 \end{frame}
 
 \begin{frame}[fragile,shrink=0.95]
-\frametitle{Example geoms -- combination}
+\frametitle{Example geoms -- adding layers}
 
 <<warning=FALSE,fig.height=5>>=
 ggplot(minke, aes(age, length, group = round_any(age,5))) + 
@@ -551,7 +585,7 @@ ggplot(minke, aes(age, length, group = round_any(age,5))) +
 \end{frame}
 
 \begin{frame}[fragile,shrink=0.95]
-\frametitle{Example geoms -- combination}
+\frametitle{Example geoms -- adding layers}
 
 <<warning=FALSE,fig.height=5>>=
 ggplot(minke, aes(age, length, group = round_any(age,5))) + 
@@ -561,37 +595,45 @@ ggplot(minke, aes(age, length, group = round_any(age,5))) +
 \end{frame}
 
 
-\frame{
-\frametitle{Colors}
 
-\bi One can play with assigning colors to points and other objects by
-variable:
-\vs
-\item Colour is controled by  \texttt{aes(...,colour=variable)}
-\vs
-\item Example:
-\texttt{ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point()}
-\vs
-\item If the geom is ``fillable'' one can use  \texttt{aes(...,fill=variable)}
-\ei
-}
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{Example geoms -- adding layers, now with a smoothing line}
+
+<<warning=FALSE,fig.height=5,message=FALSE>>=
+ggplot(minke, aes(age, length, group = round_any(age,5))) + 
+  geom_boxplot() + geom_point(aes(age,length,col=sex)) + 
+  geom_smooth(aes(group=1))
+@
+
+\end{frame}
+
 
 \frame{
-\frametitle{Position}
-\bi Barplots that are split between values of factor can place either side by side (''dodged'') or stacked on top of each other
-\bi Dodge:\\
-\texttt{ggplot(diamonds,aes(color,fill=cut)) + geom\_bar(position='dodge')}
-\vs
-\item Stack:\\
-\texttt{ggplot(diamonds,aes(color,fill=cut)) + geom\_bar(position='stack')}\\
-\ei
-\vs
-\item Overlapping point in a scatterplot can be ``jittered''. 
-
-\bi \texttt{ggplot(diamonds,aes(cut,price) + geom\_point(position='jitter')}
-\ei
-\ei
+  \frametitle{Faceting}
+  Plots can be faceted by one (or more) factor(s): 
+  \bi  \texttt{facet\_grid()} - facets by a fixed grid according the factor level
+  \vs
+  \item \texttt{facet\_wrap()} - neatly wraps facets by factorlevels between rows: \\ 
+  \ei
 }
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{facet\_grid}
+<<warning=FALSE,fig.height=5,message=FALSE>>=
+ggplot(minke, aes(age, length)) + geom_point() +
+  facet_grid(sex~NS)
+@
+
+\end{frame}
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{facet\_wrap}
+<<warning=FALSE,fig.height=5,message=FALSE>>=
+ggplot(minke, aes(age, length)) + geom_point() +
+  facet_wrap(~year) + geom_smooth()
+@
+
+\end{frame}
 
 
 
@@ -613,21 +655,6 @@ variable:
 
 
 
-\subsection{Facets}
-\frame{
-  \frametitle{Faceting}
-  Plots can be faceted by one (or more) factor(s): \\ \vs
-  \texttt{facet\_grid()} - facets by a fixed grid according the factorlevels.
-  \bi \texttt{ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point()  + facet\_grid($\sim$ color)} \\
-\item \texttt{ggplot(ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point()  + facet\_grid(clarity$\sim$ color)} \\
-  \ei
-  \vs
-  \texttt{facet\_wrap()} - neatly wraps facets by factorlevels between rows: \\ 
-  \bi \texttt{ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point()  + facet\_wrap($\sim$ color)} \\
-\item \texttt{ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point()   + facet\_wrap($\sim$ color + cut)} \\
-  \ei
-
-}
 
 
 \subsection{Appearance}
