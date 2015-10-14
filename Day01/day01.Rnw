@@ -237,17 +237,94 @@ x        ## print out the value of x to screen
 
 }
 
+\begin{frame}[fragile]
+\frametitle{Help!!}
+<<eval=FALSE>>=
+help.start()         # General help page
+help(nameOffuntion)  # Gives the help page needed
+?nameOffunction      # shorthand
+help.search('topic') # searches for specific topic
+@
+
+\end{frame}
+
+\frame{
+\frametitle{On help}
+A help page usually has the following categories:
+\bi \textbf{Description}: short description of the function
+\item \textbf{Usage}: how the function is used/called from R
+\item \textbf{Arguments}: What are the function inputs
+\item \textbf{Details}: The nitty gritty on how the function should work
+\item \textbf{Examples}: example uses
+\item \textbf{See also}: other useful functions that are similar
+\ei
+
+}
+
+\begin{frame}[fragile]
+\frametitle{Using R as a calculator}
+R can be used as calculator:
+<<eval=FALSE>>=
+1+1       # 1 plus 1 equals 2;)
+2*2       # 2 times 2 equals 4
+3^2.5     # 3 to the power of 2.5
+exp(5)    # e to the power of 5
+log(5)    # natural logarithm (ln) of 5
+log10(5)  # Base 10 log of 5
+1/2       # 1 over 2 equals 0.5
+@
+
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Few useful commands}
+<<eval=FALSE>>=
+seq(1,10)        # makes a vactor from 1 to 10  
+1:10             # same
+rep(2,3)         # makes a vector that contains 2, 3 times
+length(y)        # returns the length of a vecor named y
+sort(y)          # sorts a vector into ascending or 
+                 # descending order
+cut(y)           # divides the range of y into intervals and 
+                 # makes a factor variable
+as.character(y)  # changes y to a character vector
+cbind(x1,x2)     # binds vectors by columns
+rbind(x1,x2)     # binds vectors by rows
+
+@
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Few useful commands (II)}
+<<eval=FALSE>>=
+mean()       # mean
+median()     # median
+quantile()   # quantiles
+summary()    # depends on what we feed it with...
+sd()         # standard deviation
+var()        # variance
+range()      # range
+min()        # smallest value
+max()        # largest value
+@
+
+\end{frame}
+
+
+
 \frame{
   \frametitle{Excercise 1}
   \bi Create a folder under your Documents folder and name it 'Class excercise' 
-  \item Open R-studio and create a new project and associate it with the newly created directory
+  \item Open R-studio and create a new project called "classEx1" and associate it with the newly created directory
   \item Create a new script named 'Ex1.R'
+  \item Look at the help page for 'sum'
   \item Write a script that calculates the sum of all numbers from 1 to 100
 \ei
 }
 
-\section{Using R as a calculator}
-\frame
+
 
 \section{Graphical presentation}
 \frame{
