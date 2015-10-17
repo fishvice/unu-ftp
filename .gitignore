@@ -1,0 +1,13 @@
+.Rproj.user
+.Rhistory
+.RData
+*.Rproj
+*.tex
+*.log
+*.nav
+*.pdf
+*.snm
+*.gz
+*.toc
+*.toc
+*.vrb
