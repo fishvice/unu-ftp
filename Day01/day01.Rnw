@@ -175,91 +175,6 @@ x        ## print out the value of x to screen
 
 \end{frame}
 
-\frame{
-\frametitle{Session info}
-  \begin{columns}
-  \begin{column}{0.5\linewidth}
-  \bi \textbf{Environment}: Contains a list of all declared variables. If you have a dataset you can double click the variable to view the data
-  \vs
-  \vs
-  \item \textbf{History}: Contains a list of all previous commands entered into the console.
-\ei
-  \end{column}
-  \begin{column}{0.5\linewidth}
-  \includegraphics[width=0.9\linewidth]{env.png}\\
-  \vs
-  \includegraphics[width=0.9\linewidth]{hist.png}
-  \end{column}
-  \end{columns}
-}
-
-
-\frame{
-\frametitle{Script editor}
-  \bi Is opened when selecting File->New file->R script from the menu panel
-  \vs
-  \item A R script is basically a series of R commands that can be run in the console 
-  \vs
-  \item It is recommended to store all commands that "work" in a script for later reconstruction of a particular analysis
-  \vs
-  \item It is possible to run a single line in a script by pressing [ctrl]+Enter or the \includegraphics[width=0.1\linewidth]{button.png}  button in the top right corner
-  \ei
-}
-
-\frame{
-\frametitle{Other items}
-  \bi \textbf{Files}: Shows files on the computer. The user can change the working directory (where R reads data-files and scripts from) by selecting "more->Set as working directory"
-  \vs
-  \item \textbf{Plots}: Graphical output from R. The user can export these the figures to file or clipboard
-\ei
-}
-
-\frame{
-\frametitle{Project}
-  \bi Rstudio allows us to make things a little bit easier to isolate the task we are working with a any given point by defining specific \textbf{projects}
-  \vs
-  \item Projects save the state between sessions. This inludes:
-  \bi Working directories
-  \item Open files/scripts
-  \item Workspaces
-  \item Color scheme
-  \ei
-  \vs
-  \item Projects are created by selecting File->New project
-  \ei
-}
-
-\frame{
-\frametitle{Turning R off}
-  When shutting down R and Rstudio it reminds you to save your work: \\ \vs
-  \includegraphics[width=0.5\linewidth]{shutdown.png}\\ \vs
-  In general you should \textbf{not} save your workspace
-
-}
-
-\begin{frame}[fragile]
-\frametitle{Help!!}
-<<eval=FALSE>>=
-help.start()         # General help page
-help(nameOffuntion)  # Gives the help page needed
-?nameOffunction      # shorthand
-help.search('topic') # searches for specific topic
-@
-
-\end{frame}
-
-\frame{
-\frametitle{On help}
-A help page usually has the following categories:
-\bi \textbf{Description}: short description of the function
-\item \textbf{Usage}: how the function is used/called from R
-\item \textbf{Arguments}: What are the function inputs
-\item \textbf{Details}: The nitty gritty on how the function should work
-\item \textbf{Examples}: example uses
-\item \textbf{See also}: other useful functions that are similar
-\ei
-
-}
 
 \begin{frame}[fragile]
 \frametitle{Using R as a calculator}
@@ -311,6 +226,98 @@ max()        # largest value
 @
 
 \end{frame}
+
+
+\frame{
+\frametitle{Session info}
+  \begin{columns}
+  \begin{column}{0.5\linewidth}
+  \bi \textbf{Environment}: Contains a list of all declared variables. If you have a dataset you can double click the variable to view the data
+  \vs
+  \vs
+  \item \textbf{History}: Contains a list of all previous commands entered into the console.
+\ei
+  \end{column}
+  \begin{column}{0.5\linewidth}
+  \includegraphics[width=0.9\linewidth]{env.png}\\
+  \vs
+  \includegraphics[width=0.9\linewidth]{hist.png}
+  \end{column}
+  \end{columns}
+}
+
+
+\frame{
+\frametitle{Script editor}
+  \bi Is opened when selecting File->New file->R script from the menu panel
+  \vs
+  \item A R script is basically a series of R commands that can be run in the console 
+  \vs
+  \item It is recommended to store all commands that "work" in a script for later reconstruction of a particular analysis
+  \vs
+  \item It is possible to run a single line in a script by pressing [ctrl]+Enter or the \includegraphics[width=0.1\linewidth]{button.png}  button in the top right corner
+  \ei
+}
+
+\frame{
+\frametitle{Other items}
+  \bi \textbf{Files}: Shows files on the computer. The user can change the working directory (where R reads data-files and scripts from) by selecting "more->Set as working directory"
+  \vs
+  \item \textbf{Plots}: Graphical output from R. The user can export these the figures to file (as jpeg, png or pdf) or to clipboard
+  \vs
+  \item \textbf{Help}: Gives a browsable interface to R's in-line help pages. The user can search for a topic or a specific function
+\ei
+}
+\frame{
+\frametitle{On help}
+A help page for a function usually has the following categories:
+\bi \textbf{Description}: short description of the function
+\item \textbf{Usage}: how the function is used/called from R
+\item \textbf{Arguments}: What are the function inputs
+\item \textbf{Details}: The nitty gritty on how the function should work
+\item \textbf{Examples}: example uses
+\item \textbf{See also}: other useful functions that are similar
+\ei
+
+}
+
+\begin{frame}[fragile]
+\frametitle{Help commands}
+One can also get help from the console:
+<<eval=FALSE>>=
+help.start()         # General help page
+help(nameOffuntion)  # Gives the help page needed
+?nameOffunction      # shorthand
+help.search('topic') # searches for specific topic
+@
+
+\end{frame}
+
+
+
+\frame{
+\frametitle{Projects}
+  \bi Rstudio allows us to make things a little bit easier to isolate the task we are working with a any given point by defining specific \textbf{projects}
+  \vs
+  \item Projects save the state between sessions. This includes:
+  \bi Working directories
+  \item Open files/scripts
+  \item Workspaces
+  \item Color scheme
+  \ei
+  \vs
+  \item Projects are created by selecting File->New project
+  \ei
+}
+
+\frame{
+\frametitle{Turning R off}
+  When shutting down R and Rstudio it reminds you to save your work: \\ \vs
+  \includegraphics[width=0.5\linewidth]{shutdown.png}\\ \vs
+  In general you should \textbf{not} save your workspace unless the analysis takes a long time to reproduce. 
+
+}
+
 
 
 
@@ -387,20 +394,22 @@ whaling operation in Icelandic waters.
 \item length: length in cm 
 \item sex: Male/Female
 \item location: latitude and longitude
-\item bormicon.areas: area where samples were taken 
+%\item bormicon.areas: area where samples were taken 
 \item NS: the region (North/South) where samples were taken
 \item Maturity: detailed maturity of the animal
 \item date.caught: date of the sample
-\item year: year of the sample
-\item ...: and other variables not used here
+%\item year: year of the sample
+%\item ...: and other variables not used here
 \ei 
+
+
 }
 
 \begin{frame}[fragile,shrink=0.5]
 \frametitle{Read in the data}
 <<>>=
 ## data read in using read.table
-minke <- read.table('../data/minke.csv',header=TRUE, sep=';')
+minke <- read.csv2('../data/minke.csv')
  
 str(minke)
 
@@ -416,22 +425,18 @@ str(minke)
   \frametitle{ggplot2}
   \bi In this course we will focus on the abilities of the ggplot2 plotting package
   \vs
-  \item In ggplot2, plots are built by layering graphical components
+  \item In ggplot2, plots are built by layering graphical components where the components are summed together to form the plot like layered transparencies on a projector
   \vs
 \item A ggplot layer is composed of four parts:
   \bi data and aesthetic mapping
-\item Statistical transformations (stat\_*)
-\item  Geometric object (geom\_*)
-\item Position adjustment
+\item Statistical transformations (stat\_*), e.g. identity, mean, sum, etc..
+\item Geometric object (geom\_*), e.g x-y scatterplot, barplot, boxplot etc
+\item Position adjustment, stack or dodge
   \ei
   \vs
-\item Usually some common elements between layers (e.g. same data,
-  different geoms)
+\item Usually some common elements between layers (e.g. same data, different geoms)
   \vs
-\item Defaults are used for the layers whenever components are not
-  specified.
-  \vs
-\item The components are summed together to form the plot
+\item Defaults are used for the layers whenever components are not specified
 \ei
 
 }
@@ -453,23 +458,24 @@ p + layer(data=minke, mapping=aes(x=age, y=length),
 \end{frame}
 
 
-\subsection{Layers}
-\frame{
-\frametitle{Defining Layers}
-\bi The full specification of a layer is rather complicated where each component of a layer needs to specified:\\
-\vs 
-\item The layering approach allows sane defaults to be used for most components of the layers. 
-\vs
-\item Special types of layers s.a. scatterplots are predefined.
-\vs
-\item Layers are added to a graph by '+'
-\ei
-}
+%\subsection{Layers}
+%\frame{
+%\frametitle{Defining Layers}
+%\bi 
+%\vs 
+%\item The benefit of this layering approach is that it allows sane defaults to be used for most components of the layers 
+%\vs
+%\item Special types of layers s.a. scatterplots are predefined.
+%\vs
+%\item Layers are added to a graph by '+'
+%\ei
+%}
 
 
 \begin{frame}[fragile,shrink=0.95]
 \frametitle{ggplot -- defaults}
-Alternatively one can use these more sane defaults
+The full specification of a layer is rather cumbersome to write out as each component of a layer needs to specified.
+It is therefor more common to use a shorthand for common types of plots:
 
 <<warning=FALSE,fig.height=5>>=
 
@@ -484,12 +490,12 @@ p + geom_point(aes(age,length), data = minke)
 \frame{
 \frametitle{What are Aesthetic Mappings (aes)}
 Aesthetic mappings define the role of different variables in the
-dataset.
+dataset
 \bi x and y -- dimensions, size, color, fill, symbols, etc.
 \vs
 \item Aesthetics can be constants or variable.
 \vs 
-\item Define using aes() and can be defined globally (within the
+\item Defined using aes() - command and can be defined globally (within the
   starting ggplot command) or locally within layers.
 \ei
 }
@@ -498,7 +504,7 @@ dataset.
 \begin{frame}[fragile,shrink=0.95]
 \frametitle{ggplot -- defaults}
 
-With global data and aes mapping
+The same plot with global data and aes mapping
 
 <<warning=FALSE,fig.height=5>>=
 ggplot(minke,aes(age,length)) + geom_point()
@@ -538,6 +544,16 @@ variable:
 }
 
 \begin{frame}[fragile,shrink=0.95]
+\frametitle{Example geoms -- scatter-plot, now with color}
+
+<<warning=FALSE,fig.height=5>>=
+ggplot(minke, aes(age,length,col=sex)) + geom_point()
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile,shrink=0.95]
 \frametitle{Example geoms -- bar-plot, now with color}
 
 <<warning=FALSE,fig.height=5>>=
@@ -545,6 +561,8 @@ ggplot(minke, aes(maturity,fill=sex)) + geom_bar()
 @
 
 \end{frame}
+
+
 
 \begin{frame}[fragile,shrink=0.9]
 \frametitle{Position}
@@ -620,7 +638,7 @@ ggplot(minke, aes(age, length, group = round_any(age,5))) +
 \begin{frame}[fragile,shrink=0.95]
 \frametitle{facet\_grid}
 <<warning=FALSE,fig.height=5,message=FALSE>>=
-ggplot(minke, aes(age, length)) + geom_point() +
+ggplot(minke, aes(year)) + geom_bar() +
   facet_grid(sex~NS)
 @
 
@@ -629,70 +647,79 @@ ggplot(minke, aes(age, length)) + geom_point() +
 \begin{frame}[fragile,shrink=0.95]
 \frametitle{facet\_wrap}
 <<warning=FALSE,fig.height=5,message=FALSE>>=
-ggplot(minke, aes(age, length)) + geom_point() +
-  facet_wrap(~year) + geom_smooth()
+ggplot(minke, aes(NS,fill=sex)) + 
+  facet_wrap(~year) + geom_bar()
 @
 
 \end{frame}
 
 
 
+%\frame{
+%\frametitle{Stats}
+%\bi Used for plotting statistics/summaries
+%\bi e.g. mean of the response at fixed levels of the predictior
+%\item or non-standard box--plots
+%\ei
+%\vs
+%\item Specified using prefix stat\_ and suffix that names the desired
+%  transformation:
+%\bi Means, meadians etc.. specified with stat\_summary()
+%\item Regression models with stat\_smooth()
+%\item Mathematical formulae and functions can be drawn with stat\_function()
+%\ei
+%\ei
+%}
+
+
+
+
+
+%\subsection{Appearance}
+
+
+
 \frame{
-\frametitle{Stats}
-\bi Used for plotting statistics/summaries
-\bi e.g. mean of the response at fixed levels of the predictior
-\item or non-standard box--plots
-\ei
-\vs
-\item Specified using prefix stat\_ and suffix that names the desired
-  transformation:
-\bi Means, meadians etc.. specified with stat\_summary()
-\item Regression models with stat\_smooth()
-\item Mathematical formulae and functions can be drawn with stat\_function()
-\ei
-\ei
-}
-
-
-
-
-
-\subsection{Appearance}
-
-
-
-\frame{
-\frametitle{Labels}
+\frametitle{Changing axis labels}
 \bi \texttt{xlab()} - Assigns name to the x-axis 
 \vs
 \item \texttt{ylab()} - Assigns name to the y-axis 
 \vs
-\item \texttt{theme(legend.position="none")} removes the legend 
-\vs
-\item \texttt{ggplot(diamonds,aes(price,carat,colour=cut)) + geom\_point() + xlab('verd') + ylab('skurdur') + theme(legend.position="none")}
+\item \texttt{theme(legend.position=c(x,y))} gives the coordinate of the legend, legend.position='none' removes the legend
 \ei
 }
 
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{facet\_wrap}
+<<warning=FALSE,fig.height=5,message=FALSE>>=
+ggplot(minke, aes(NS,fill=sex)) + 
+  facet_wrap(~year) + geom_bar() + xlab('Area') + 
+  ylab('Number of whales caught') + 
+  theme(legend.position=c(0.8,0.2))
+  
+@
+
+\end{frame}
 
 
-\frame{
-\frametitle{Scales}
-Colorpalettes can be changed at the users discretion:
+%\frame{
+%\frametitle{Scales}
+%Colorpalettes can be changed at the users discretion:
 
-\bi \texttt{scale\_fill\_brewer()} - scales from colourbrewer2.org
-\vs
-\item \texttt{scale\_fill\_manual(values=c("\#CC6666", "\#9999CC", "\#66CC99"))} -- manual scales.
-\vs
-\item \texttt{scale\_fill\_continuous()} - continous scale \\
-\vs
-\item \texttt{scale\_fill\_discrete()} - discrete scale\\
-\vs
-\ei
-}
+%\bi \texttt{scale\_fill\_brewer()} - scales from colourbrewer2.org
+%\vs
+%\item \texttt{scale\_fill\_manual(values=c("\#CC6666", "\#9999CC", "\#66CC99"))} -- manual scales.
+%\vs
+%\item \texttt{scale\_fill\_continuous()} - continous scale \\
+%\vs
+%\item \texttt{scale\_fill\_discrete()} - discrete scale\\
+%\vs
+%\ei
+%}
 
 \frame{
 \frametitle{Themes}
-ggplot2 is supplied with two themes:
+ggplot2 is supplied with two colour themes:
 
 \bi theme\_grey -- default background theme
 \vs 
@@ -705,29 +732,57 @@ ggplot2 is supplied with two themes:
 
 }
 
-\section{Example}
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{facet\_wrap}
+<<warning=FALSE,fig.height=5,message=FALSE>>=
+ggplot(minke, aes(NS,fill=sex)) + 
+  facet_wrap(~year) + geom_bar() + xlab('Area') + 
+  ylab('Number of whales caught') + 
+  theme(legend.position=c(0.8,0.2)) +
+  theme_bw()
+  
+@
 
-\frame{
+\end{frame}
+
+
+%\section{Example}
+
+%\frame{
 
 %\includegraphics[width=0.8\linewidth]{../../Greinar/MinkeSurvey/Article/Figures/Fig1.pdf}
-}
+%}
 
 
-\frame{
-  \frametitle{Extending ggplot2}
-  \bi ggmaps -- embeds online maps (openstreetmap, google maps, etc..) as layer. 
-  \vs
-\item gridExtra -- based on \texttt{grid} and allow mixing grid objects to a single plot device
-  \vs 
-\item ggthemes -- new color themes to ggplot2.
-\ei
-}
+%\frame{
+%  \frametitle{Extending ggplot2}
+%  \bi ggmaps -- embeds online maps (openstreetmap, google maps, etc..) as layer. 
+%  \vs
+%\item gridExtra -- based on \texttt{grid} and allow mixing grid objects to a single plot device
+%  \vs 
+%\item ggthemes -- new color themes to ggplot2.
+%\ei
+%}
 
 \frame{
 \frametitle{On--line resources}
 \bi docs.ggplot2.org
 \vs
 \item stackoverflow.com
+\ei
+}
+
+
+\frame{
+\frametitle{Excercise 2}
+ Create a new script as a part of your project and name it 'Ex2.R'. In this script write code to:
+\bi Read in the minke whale dataset
+\vs
+\item Plot length as a function of age and colour the points according the area where the whales were taken
+\vs
+\item Plot a histogram of age for the whales
+\vs
+\item Plot a histogram of the age faceted by year
 \ei
 }
 
@@ -743,6 +798,11 @@ aggregates or summaries of data.
 \item Developed by Hadley Wickam, the creator ggplot2 and other
   useful tools.
 \ei
+
+}
+
+\frame{
+\frametitle{Useful commands}
 
 }
 
@@ -771,22 +831,22 @@ For example, one might want to
 If one wants to create a new variable (column) into the data sets one can either:
 
 <<eval=FALSE>>=
-minke$new.col <- minke$ID + 3
+minke$approx.weight <- 3.85*1e-06*minke$length^3.163
 @
 
 or use mutate
 
 <<eval=FALSE>>=
-minke <- mutate(minke,ID = ID + 3)
+minke <- mutate(minke,approx.weight = 3.85*1e-06*length^3.163)
 @
 
 This probably not very useful until you want to create many variables at once:
 
-<<eval=FALSE>>=
+<<>>=
 minke <- mutate(minke,
-                ID.1 = ID + 3,
-                ID.2 = ID.1 + 4,
-                ID.3 = ID*3)
+                approx.weight = 3.85*1e-06*length^3.163,
+                weight = ifelse(is.na(weight),approx.weight,
+                                weight))
 @
 
 \end{frame}
@@ -804,8 +864,8 @@ And new summaries can be added:
 <<>>=
 summarise(minke, 
           num.obs = length(whale.id), 
-          num.fem=sum(sex=='Female'), 
-          num.large=sum(length>650))
+          num.fem = sum(sex=='Female'), 
+          num.large = sum(length>650))
 @
 
 
