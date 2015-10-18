@@ -801,10 +801,6 @@ aggregates or summaries of data.
 
 }
 
-\frame{
-\frametitle{Useful commands}
-
-}
 
 \frame{
 \frametitle{Summarising data for groups}
@@ -863,9 +859,9 @@ And new summaries can be added:
 
 <<>>=
 summarise(minke, 
-          num.obs = length(whale.id), 
-          num.fem = sum(sex=='Female'), 
-          num.large = sum(length>650))
+          num.obs = length(whale.id),   
+          num.fem = sum(sex == 'Female'), 
+          num.large = sum(length > 650))
 @
 
 
@@ -873,14 +869,43 @@ summarise(minke,
 
 \begin{frame}[fragile]
 \frametitle{Split - apply - combine}
+\bi Summarise and mutate are somewhat useful on its own but become much more useful when combined with a group\_by statement:
+<<>>=
+## split the analysis by area
+minke <- group_by(minke,NS)   
+summarise(minke,
+          num.obs = length(whale.id), 
+          num.fem = sum(sex=='Female'), 
+          num.large = sum(length>650))
 
+@
+
+<<echo=FALSE>>=
+minke <- ungroup(minke)
+@
+
+\ei
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Creating summaries}
-
+\frametitle{ungroup}
+To remove grouping use:
+<<>>=
+minke <- ungroup(minke)
+@
 
 \end{frame}
+
+\frame{
+\frametitle{Excercise 3}
+Create a new script, 'Ex3.R' and write code that produces:
+\bi The number of whales caught each year
+\vs
+\item The proportion caught of which are females each year
+\vs
+\item Calculate the mean length by maturity
+\ei
+}
 
 
 \end{document}
