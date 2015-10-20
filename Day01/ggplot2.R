@@ -72,8 +72,8 @@ ggplot(minke, aes(maturity, length)) +
 
 
 ## vonB curve 
-vonB <- function(linf,k,a){
-  gr <- linf * (1 - exp(-k * a))
+vonB <- function(linf,k,a,t0){
+  gr <- linf * (1 - exp(-k * (a-t0)))
   return(gr)
 }
 

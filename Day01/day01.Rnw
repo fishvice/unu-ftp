@@ -72,7 +72,7 @@ fadings,calc,trees,mindmap,shadows,decorations.text,patterns,positioning,shapes,
 
 \title[Data mining]{Data mining}
 \subtitle{Course on data wrangling using R at the UNU}
-\author[Bjarki]{Bjarki Þór Elvarsson}
+\author[Bjarki\&Einar]{Bjarki Þór Elvarsson and Einar Hjörleifsson}
 \date{} % beskidt .. men det virker
 \institute[MRI]{Marine Research Institute}
 \beamertemplatenavigationsymbolsempty % fjerner pdf-indhold, til hvis der bare skal printes slides ud
@@ -325,6 +325,7 @@ help.search('topic') # searches for specific topic
   \frametitle{Excercise 1}
   \bi Create a folder under your Documents folder and name it 'Class excercise' 
   \item Open R-studio and create a new project called "classEx1" and associate it with the newly created directory
+  \item Install ggplot2, tidyr, dplyr and gridExtra if you haven't done so already
   \item Create a new script named 'Ex1.R'
   \item Look at the help page for 'sum'
   \item Write a script that calculates the sum of all numbers from 1 to 100
@@ -802,6 +803,8 @@ aggregates or summaries of data.
 }
 
 
+
+
 \frame{
 \frametitle{Summarising data for groups}
 Commonly, when collating summaries by group, one wants to:  
@@ -821,6 +824,35 @@ For example, one might want to
 \item perform group-wise transformations like scaling or standardising
 \ei
 }
+
+\begin{frame}[fragile,shrink=0.9]
+\frametitle{Filter data}
+One can create a subset of the data using the \texttt{filter} command:
+<<>>=
+## create a dataset with only females 
+minke.females <- filter(minke,sex=='Female')
+head(minke.females)
+@
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Logical operators}
+A list of logical operators that are useful when filtering data:
+<<eval=FALSE>>=
+<       # less than 
+<=      # less than or equal to 
+>       # larger than 
+>=      # larger or equal to 
+==      # equal to 
+!=      # no equal to 
+x | y   # x or y
+x & y   # x and y 
+@
+
+
+\end{frame}
+
 
 \begin{frame}[fragile]
 \frametitle{Modifying columns}
@@ -887,11 +919,16 @@ minke <- ungroup(minke)
 \ei
 \end{frame}
 
+
 \begin{frame}[fragile]
-\frametitle{ungroup}
-To remove grouping use:
+\frametitle{Chaining expressions together}
+Operations can be chained using the $\%>\%$ operator
 <<>>=
-minke <- ungroup(minke)
+minke %>% 
+  group_by(NS) %>%   
+  summarise(num.obs = length(whale.id), 
+            num.fem = sum(sex=='Female'), 
+            num.large = sum(length>650))
 @
 
 \end{frame}
@@ -903,9 +940,90 @@ Create a new script, 'Ex3.R' and write code that produces:
 \vs
 \item The proportion caught of which are females each year
 \vs
-\item Calculate the mean length by maturity
+\item Calculate the mean length and age along with standard deviation grouped by maturity
 \ei
 }
+
+
+\section{Fitting models}
+\frame{
+\frametitle{Simple model fitting}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\bi Now say we want to fit a growth curve to our minke whale data
+\vs 
+\item Typically this would by a Von Bertalanffy growth curve of the form:
+$$ l = L_{\infty}(1-e^{-k(a-t_0)})$$
+\vs
+\item How do we do this in R?
+\ei
+
+\end{column}
+\begin{column}{0.5\linewidth}
+<<echo=FALSE,message=FALSE,warning=FALSE,fig.width=5,fig.height=4>>=
+ggplot(minke,aes(age,length)) + geom_point() + theme_bw() + ylab('Length') + xlab('Age')
+@
+\end{column}
+\end{columns}
+
+}
+
+\frame{
+\frametitle{What do we want to do exactly?}
+\bi We want to find the best fitting curve through the datapoints
+\vs
+\item This means that we want to "draw" a line that minimized on average the distance to all data points, i.e. find x that solves
+$$\textup{min}_{\textbf{x}} \left(\sum_{i} (l_i - \textup{VonB}(\textbf{x},a(i)))^2\right)$$
+\vs
+\item In the Von B function there are three parameters, $L_\infty$, $k$ and $t_0$ that can be adjusted so the task here is to find values of these three parameters such that the above sum is minimized
+\ei
+
+}
+
+\begin{frame}[fragile]
+\frametitle{In R:}
+<<>>=
+age.data <- filter(minke,!is.na(age))
+minke.vonB.par <- 
+  nls(length~Linf*(1-exp(-K*(age-t0))),
+      data=age.data, start=list(Linf=1100, K=0.1, t0=-1))
+minke.vonB.par
+@
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{And prepare for a plot}
+First define a Von B function:
+<<>>=
+vonB <- function(linf,k,a,t0){
+  gr <- linf * (1 - exp(-k * (a-t0)))
+  return(gr)
+}
+@
+Then calculate the average length for each age
+<<>>=
+x <- coefficients(minke.vonB.par) ## get the coefficients
+age <- seq(1,50,by=1/12) ## age by month
+pred.length <- vonB(x[1],x[2],age,x[3])
+pred.dat <- ## create a data table
+  data.frame(age=age,length=pred.length)
+@
+
+
+\end{frame}
+
+\begin{frame}[fragile,shrink=0.9]
+\frametitle{And plot:}
+
+<<fig.width=5,fig.height=3,warning=FALSE,message=FALSE>>=
+ggplot(minke,aes(age,length)) + geom_point() + 
+  geom_line(data=pred.dat) +   
+  theme_bw() + ylab('Length') + xlab('Age') 
+@
+
+
+\end{frame}
 
 
 \end{document}

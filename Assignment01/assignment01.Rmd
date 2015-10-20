@@ -13,19 +13,31 @@ stations <-
   filter(synaflokkur == 30) 
 
 samples <- 
-    all.le %>%
-    filter(synis.id %in% stations$synis.id) %>%# &
-#           tegund %in% species.key$tegund) %>%
-    group_by(synis.id,tegund) %>%
-    left_join(stations) %>%
-#    left_join(species.key) %>%
-    left_join(data.table(all.nu)) %>%
-    mutate(count=fjoldi,
-           sex = c('M','F')[pmax(1,kyn)],
-           age = 0,
-           month = man,
-           sampling_type = 'SEA',
-           maturity_stage = pmax(1,pmin(kynthroski,2))) 
+  all.kv %>%
+  filter(synis.id %in% stations$synis.id) %>%# &
+  #           tegund %in% species.key$tegund) %>%
+  group_by(synis.id,tegund) %>%
+  left_join(stations) %>%
+  #    left_join(species.key) %>%
+  mutate(sex = c('M','F')[pmax(1,kyn)],
+         maturity_stage = pmax(1,pmin(kynthroski,2))) %>%
+  select(sample.id = synis.id, year=ar, month=man, day = dags, 
+         station.id = stod, lat, lon, depth = dypi, sex, maturity_stage,
+         age = aldur, length = lengd, ungutted.weight=oslaegt,
+         gutted.weight=slaegt, liver.weight=lifur, gonad.weight=kynfaeri,
+         species=tegund)
+
+tmp <- samples %>%  group_by(species) %>% 
+  summarise(n = length(sample.id),w=sum(!is.na(ungutted.weight)),a=sum(!is.na(age))) %>% 
+  arrange(desc(n)) %>% slice(1:10) 
+
+dir.create('species')
+for(i in tmp$species){
+  samples %>% 
+  filter(species == i) %>% 
+  write.csv2(sprintf('species/species-%s.csv',i))
+}                            
+  
 
 ```
 
@@ -34,13 +46,7 @@ The dataset in this excercise was collected from the Icelandic groundfish survey
 
 The survey occurs in March every year with sample hauls (stations) taken on more than 500 at fixed locations. For each station the catch is analysed, species identified and length recorded. Age, sex, weight and maturity is recorded for a subsample. 
 
-Each student will be assigned a species according to the following table, which the student will use in this excercies
-
-
-Name  | Species | Shortname
------ | ------- | ---------
-Jón   | Dragons | DRG
-Gunna | Goblins | GOB
+Each student will be assigned a species which the student will use in this excercise.
 
 
 # Read in and describe the data
@@ -53,26 +59,27 @@ In the folder ''species'' you will find files names according to the shortname i
 
 ## Compile statistics
 * Find the total number of survey stations where the species have been observed
-    + How does this vary by year, calculate the number of survey stations by year
-    + Plot the number of survey stations by year 
+    + Calculate the number of stations by year where the species is found 
+    + Illustrate the number of stations by year using a bar plot
+    + Indicate, in another bar plot, spatial changes by assigning different fill color to stations north of 65° degrees latitude
     
-* Number of individuals caught in the survey fluctuates from year to year. Illustrate this by:
-    + calculating the number of samples per year and produce a table 
-    + creating a bar-plot of the number individuals per year
-    + **Bonus**: indicate spatial changes by assigning different fill color to fish caught north of 65° degrees latitude
+* Number of individuals caught in the survey fluctuates from station to station. Illustrate this by:
+    + creating a bar-plot of the number individuals caught at each station, by year (using facet_wrap)
+    + indicate spatial changes by assigning different fill color to fish caught north of 65° degrees latitude
+
     
 * Investigate the age length relationship:
     + Plot a scatterplot of age and length  
-    + Plot a boxplot of age and length
+    + **Bonus**: Plot a boxplot of age and length
     + **Bonus**: Fit a Von Bertalanffy curve to the age length data 
+
 
 * Investigate changes of over time:
     + Plot length distributions by year
-    + Calculate mean length by year
-
-# Illustrating spatial effects
+    + Calculate mean length by year and produce a table
+    +  **Bonus**: Calculate mean weight by age and year and plot
 
 
 # Report 
-Produce a short report of your findings with the R-code you used. 
+Produce a short report of your findings with the R-code you used.  
 
