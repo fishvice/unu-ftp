@@ -1,0 +1,210 @@
+---
+title: "Introduction to R"
+date: "`r Sys.Date()`"
+output: 
+  html_document: 
+    highlight: haddock
+    number_sections: yes
+    theme: flatly
+    toc: yes
+---
+
+```{r, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(collapse = T, comment = ">")
+options(dplyr.print_min = 4L, dplyr.print_max = 4L)
+library(dplyr)
+library(ggplot2)
+```
+
+# The example data
+
+To explore the basic data manipulation in R, we'll use some fishy data. The dataset contains measurments of 123252 fish of a particular species.
+
+To do: Describe in more detail ...
+
+```{r, echo = FALSE, eval = FALSE}
+fish <- read.csv2("species/species-1.csv") %>%
+  tbl_df() %>%
+  select(-X)
+library(readr)
+write_csv(fish, "/net/www/export/home/hafri/einarhj/public_html/data/fish.csv")
+```
+
+```{r}
+fish <- read.csv("http://www.hafro.is/~einarhj/data/fish.csv") %>%
+  tbl_df()
+dim(fish)
+glimpse(fish)
+```
+
+
+# Basic dataframe manipulations
+
+In the following tutorial we are using functions in the `dplyr`-package. As is stated in the [Introduction to dplyr](https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html):
+
+> When working with data you must:
+>
+>* Figure out what you want to do.
+>
+>* Describe those tasks in the form of a computer program.
+>
+>* Execute the program.
+>
+>The dplyr package makes these steps fast and easy:
+>
+>* By constraining your options, it simplifies how you can think about common data manipulation tasks.
+>
+>* It provides simple "verbs", functions that correspond to the most common data manipulation tasks, to help you translate those thoughts into code.
+>
+>* It uses efficient data storage backends, so you spend less time waiting for the computer.
+>
+> dplyr can work with data frames as is, but if you're dealing with large data, it's worthwhile to convert them to a `tbl_df` (as done above): this is a wrapper around a data frame that won't accidentally print a lot of data to the screen.
+>
+>Dplyr aims to provide a function for each basic verb of data manipulation:
+>
+>* `filter()` (and `slice()`)
+>* `arrange()`
+>* `select()` (and `rename()`)
+>* `distinct()`
+>* `mutate()` (and `transmute()`)
+>* `summarise()`
+>* `sample_n()` and `sample_frac()`
+
+The following structure of the text is inspired by the above cited dplyr-tutorial. Any sentences that are taken directly from that text are quoted.
+
+## Select columns with `select()`
+
+"Often you work with large datasets with many columns but only a few are actually of interest to you. `select()` allows you to rapidly zoom in on a useful subset."
+
+Select columns by name:
+```{r}
+select(fish, year, length, sex)
+```
+
+Select all columns between length and ungutted weight (inclusive)
+```{r}
+select(fish, sex:ungutted.weight)
+```
+
+Select all columns except those from sex to species (inclusive)
+```{r}
+select(fish, -(sex:species))
+```
+
+
+<div class="panel panel-warning">
+<div class="panel-heading">A note on piping</div>
+<div class="panel-body">
+
+In the `select` function the first argument is the dataframe you want to manipulate (here the fish dataframe). Using a piping function one could have written the above as:
+
+```{r, eval = FALSE}
+fish %>% select(year, length, sex)
+fish %>% select(sex:ungutted.weight)
+fish %>% select(-(sex:species))
+```
+
+</div>
+</div>
+
+
+
+The `select` function works similarly to the `select` argument in `base::subset()`.
+
+"There are a number of helper functions you can use within `select()`, like `starts_with()`, `ends_with()`, `matches()` and `contains()`. These let you quickly match larger blocks of variables that meet some criterion. See `?select` for more details."
+
+## Rename columns with `rename()`
+
+Renaming columns
+```{r, eval=FALSE}
+rename(fish,
+       unguttedWeightInGrams = ungutted.weight,
+       )
+```
+
+You can rename variables with `select()` by using named arguments:
+
+```{r}
+select(fish, uw = ungutted.weight)
+```
+
+But because `select()` drops all the variables not explicitly mentioned, it's not that useful. Instead, use `rename()`:
+
+```{r, eval=FALSE}
+rename(fish, uw = ungutted.weight)
+```
+
+## Filter rows with `filter()`
+
+`filter()` allows you to select a subset of rows in a data frame. The first argument is the name of the data frame. The second and subsequent arguments are the expressions that filter the data frame:
+
+For example we can select all data from year 2003 with:
+
+```{r}
+filter(fish, year == 2003)
+```
+
+This is equivalent to:
+```{r, eval=FALSE}
+filter(fish, year %in% c(2003))
+```
+
+If we want to select for more years we could do (here both year 2002 and 2004:
+```{r, eval=FALSE}
+filter(fish, year == 2002 | year == 2003)
+```
+
+The `|` stands for __or__. An alternative could be:
+```{r, eval=FALSE}
+filter(fish, year %in% c(2002:2003))
+```
+
+Another example, we can select all female fish from 2003 with:
+```{r}
+filter(fish, year == 2003, sex == "F")
+```
+
+Note that this is equivalent to:
+```{r, eval = FALSE}
+fish %>% filter(year == 2003, sex == "F")
+```
+
+In the latter case the `fish` dataframe is passed/piped into the function `filter`
+
+Both examples above are equivalent to the more verbose code in base R:
+
+```{r, eval = FALSE}
+fish[fish$year == 2003 & fish$sex == "F", ]
+```
+
+Note that in the above examples filtered data are __not__ stored as object in your environment. For that one needs to do:
+```{r}
+females_2003 <- filter(fish, year == 2003, sex == "F")
+```
+
+which is the same as:
+```{r}
+females_2003 <- fish %>% filter(year == 2003, sex == "F")
+```
+
+Now we have an smaller dataframe with only 1976 rows/observations (the fish dataframe has 123252 rows):
+```{r}
+dim(females_2003)
+```
+
+`filter()` works similarly to `subset()` except that you can give it any number of filtering conditions, which are joined together with `&` (not `&&` which is easy to do accidentally!).  You can also use other boolean operators:
+
+```{r}
+x <- filter(fish, year == 2003 | sex == "F")
+```
+
+The `|` stands for __or__, so in the above we select all data for year 2003 and only data for females for the other years. We can visualize this by using the `table` function:
+```{r}
+table(x$year, x$sex)
+```
+
+To select rows by position, use `slice()`:
+
+```{r}
+slice(fish, 1001:1002)
+```
