@@ -777,7 +777,9 @@ ggplot(minke, aes(NS,fill=sex)) +
 \frame{
 \frametitle{Excercise 2}
  Create a new script as a part of your project and name it 'Ex2.R'. In this script write code to:
-\bi Read in the minke whale dataset
+\bi Move the data folder to your project folder
+\vs
+\item Read in the minke whale dataset
 \vs
 \item Plot length as a function of age and colour the points according the area where the whales were taken
 \vs
