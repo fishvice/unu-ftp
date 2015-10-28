@@ -12,8 +12,6 @@ output:
 ```{r, echo = FALSE, message = FALSE}
 knitr::opts_chunk$set(collapse = T, comment = ">")
 options(dplyr.print_min = 4L, dplyr.print_max = 4L)
-library(dplyr)
-library(ggplot2)
 ```
 
 # The example data
@@ -25,11 +23,19 @@ To do: Describe in more detail ...
 ```{r, echo = FALSE, eval = FALSE}
 fish <- read.csv2("species/species-1.csv") %>%
   tbl_df() %>%
-  select(-X)
+  select(-X) %>%
+  arrange(is.na(ungutted.weight), year, month, day, sample.id)
 library(readr)
 write_csv(fish, "/net/www/export/home/hafri/einarhj/public_html/data/fish.csv")
 ```
 
+Needed libraries:
+```{r, message = FALSE}
+library(dplyr)
+library(ggplot2)
+```
+
+Read in the data and take a little peak:
 ```{r}
 fish <- read.csv("http://www.hafro.is/~einarhj/data/fish.csv") %>%
   tbl_df()
@@ -59,16 +65,20 @@ In the following tutorial we are using functions in the `dplyr`-package. As is s
 >* It uses efficient data storage backends, so you spend less time waiting for the computer.
 >
 > dplyr can work with data frames as is, but if you're dealing with large data, it's worthwhile to convert them to a `tbl_df` (as done above): this is a wrapper around a data frame that won't accidentally print a lot of data to the screen.
->
->Dplyr aims to provide a function for each basic verb of data manipulation:
->
->* `filter()` (and `slice()`)
->* `arrange()`
->* `select()` (and `rename()`)
->* `distinct()`
->* `mutate()` (and `transmute()`)
->* `summarise()`
->* `sample_n()` and `sample_frac()`
+
+The `dplyr`-package aims to provide a function for each basic verb of data manipulation:
+
+* `select()`: Selects variable(s) (column(s)) by name
+* `rename()`: Renames variable(s) (column(s))
+* `filter()`: Returns row(s) with matching conditions
+* `slice()`: Selects row(s) by position - normally not very useful
+* `arrange()`: Arrange rows by variables. Equivalent to "sort"
+* `distinct()`: Select distinct/unique rows
+* `mutate()`: Add new variables and preserves existing varibles
+* `transmute()`: Add new variable but drop exisiting variables
+* `summarise()`: Summarise multiple values to a single value
+* `sample_n()`: Sample n rows from a table
+* `sample_frac()`: Sample n rows from a table
 
 The following structure of the text is inspired by the above cited dplyr-tutorial. Any sentences that are taken directly from that text are quoted.
 
@@ -91,12 +101,11 @@ Select all columns except those from sex to species (inclusive)
 select(fish, -(sex:species))
 ```
 
-
 <div class="panel panel-warning">
-<div class="panel-heading">A note on piping</div>
+<div class="panel-heading">A note on piping `%>%`</div>
 <div class="panel-body">
 
-In the `select` function the first argument is the dataframe you want to manipulate (here the fish dataframe). Using a piping function one could have written the above as:
+In the `select` function the first argument is the dataframe you want to manipulate (here the fish dataframe). Using the piping function (`%>%`) one could have written the above as:
 
 ```{r, eval = FALSE}
 fish %>% select(year, length, sex)
@@ -104,34 +113,33 @@ fish %>% select(sex:ungutted.weight)
 fish %>% select(-(sex:species))
 ```
 
+__We strongly urge you to adapt the pipe convention. And this will be followed as much as possible in what follows__
+
 </div>
 </div>
-
-
-
-The `select` function works similarly to the `select` argument in `base::subset()`.
 
 "There are a number of helper functions you can use within `select()`, like `starts_with()`, `ends_with()`, `matches()` and `contains()`. These let you quickly match larger blocks of variables that meet some criterion. See `?select` for more details."
 
 ## Rename columns with `rename()`
 
-Renaming columns
-```{r, eval=FALSE}
-rename(fish,
-       unguttedWeightInGrams = ungutted.weight,
-       )
+Renaming columns (results not shown):
+```{r, eval = FALSE}
+fish %>% rename(unguttedWeightInGrams_becauseILikeLongNames = ungutted.weight)
 ```
 
-You can rename variables with `select()` by using named arguments:
+Combining the `rename` and the `select` function:
+```{r}
+fish %>%
+  rename(unguttedWeightInGrams_becauseILikeLongNames = ungutted.weight) %>%
+  select(sample.id, length, unguttedWeightInGrams_becauseILikeLongNames)
+```
+
+In the above case you had in the second line to type in the long name for ungutted weight. If you are a minimalist you would do:
 
 ```{r}
-select(fish, uw = ungutted.weight)
-```
-
-But because `select()` drops all the variables not explicitly mentioned, it's not that useful. Instead, use `rename()`:
-
-```{r, eval=FALSE}
-rename(fish, uw = ungutted.weight)
+fish %>%
+  rename(uW = ungutted.weight) %>%
+  select(length, uW)
 ```
 
 ## Filter rows with `filter()`
@@ -141,48 +149,30 @@ rename(fish, uw = ungutted.weight)
 For example we can select all data from year 2003 with:
 
 ```{r}
-filter(fish, year == 2003)
+fish %>% filter(year == 2003)
 ```
 
-This is equivalent to:
+This is equivalent to (results not shown):
 ```{r, eval=FALSE}
-filter(fish, year %in% c(2003))
+fish %>% filter(year %in% c(2003))
 ```
 
-If we want to select for more years we could do (here both year 2002 and 2004:
+If we want to select for more years we could do (here both year 2002 and 2004 (results not shown):
 ```{r, eval=FALSE}
-filter(fish, year == 2002 | year == 2003)
+fish %>% filter(year == 2002 | year == 2003)
 ```
 
-The `|` stands for __or__. An alternative could be:
+The `|` stands for __or__. An alternative could be (results not shown):
 ```{r, eval=FALSE}
-filter(fish, year %in% c(2002:2003))
+fish %>% filter(year %in% c(2002:2003))
 ```
 
 Another example, we can select all female fish from 2003 with:
 ```{r}
-filter(fish, year == 2003, sex == "F")
-```
-
-Note that this is equivalent to:
-```{r, eval = FALSE}
 fish %>% filter(year == 2003, sex == "F")
 ```
 
-In the latter case the `fish` dataframe is passed/piped into the function `filter`
-
-Both examples above are equivalent to the more verbose code in base R:
-
-```{r, eval = FALSE}
-fish[fish$year == 2003 & fish$sex == "F", ]
-```
-
 Note that in the above examples filtered data are __not__ stored as object in your environment. For that one needs to do:
-```{r}
-females_2003 <- filter(fish, year == 2003, sex == "F")
-```
-
-which is the same as:
 ```{r}
 females_2003 <- fish %>% filter(year == 2003, sex == "F")
 ```
@@ -195,7 +185,7 @@ dim(females_2003)
 `filter()` works similarly to `subset()` except that you can give it any number of filtering conditions, which are joined together with `&` (not `&&` which is easy to do accidentally!).  You can also use other boolean operators:
 
 ```{r}
-x <- filter(fish, year == 2003 | sex == "F")
+x <- fish %>% filter(year == 2003 | sex == "F")
 ```
 
 The `|` stands for __or__, so in the above we select all data for year 2003 and only data for females for the other years. We can visualize this by using the `table` function:
@@ -203,8 +193,69 @@ The `|` stands for __or__, so in the above we select all data for year 2003 and 
 table(x$year, x$sex)
 ```
 
+## Filter rows with `slice()`
+
 To select rows by position, use `slice()`:
 
 ```{r}
-slice(fish, 1001:1002)
+fish %>% slice(1001:1002)
 ```
+
+The above selects rows 1001 and 1002 from the total rows of 123252. Have not found a lot of use for this yet.
+
+## Reorder rows with `arrange()`
+
+`arrange()` works similarly to `filter()` except that instead of filtering or selecting rows, it reorders them (equivalent to sort in Excel). It takes a data frame, and a set of column names (or more complicated expressions) to order by.
+
+```{r}
+fish %>% arrange(length)
+```
+
+Here the data are reordered by length. Hence the top 4 lines in the output "shows" the smallest fish measured. Actually you do not "see" the smallest length here (because the variable length is included in "Variables not shown"). If we combine `arrange` with `select` we get a better picture:
+
+```{r}
+fish %>% arrange(length) %>%
+  select(year, month, day, length)
+```
+
+So the smallest fish measured is 7 cm, measured on the date 20.3.1985. And then we have a bunch of 8 cm fish.
+
+Use `desc()` to order a column in descending order:
+
+```{r}
+fish %>% arrange(desc(length)) %>%
+  select(year, month, day, length)
+```
+
+This shows the top 4 largest fish measured by date. By the way check out the help file for `desc` by typing `?desc`.
+
+So instead of using `desc` we could instead put a minus sign in front of the variable length to get the same results (not shown):
+```{r, eval = FALSE}
+fish %>% arrange(-length) %>%
+  select(year, month, day, length)
+```
+
+
+## Select distinct/unique rows `distinct()`
+
+pending ...
+
+## Add new variables and preserves existing varibles with `mutate()`
+
+pending ...
+
+## Add new variable and drop exisiting variables with `transmute()`
+
+pending ...
+
+## Summarise multiple values to a single value `summarise()`
+
+pending ...
+
+## Sample n rows from a table with `sample_n()`
+
+pending ...
+
+## Sample n rows from a table with `sample_frac()`
+
+pending ...
