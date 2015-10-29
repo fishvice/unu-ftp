@@ -1,0 +1,362 @@
+---
+title: Mapping using ggplot2
+---
+
+---
+
+```{r eval=FALSE, echo=FALSE}
+# ------------------------------------------------------------------------------
+# data preparations
+library(fjolst)
+library(dplyr)
+library(readr)
+library(lubridate)
+library(gisland)
+
+# -----------------------------------------------------------------------------
+# fish data
+stations <- 
+  stodvar %>% 
+  filter(synaflokkur == 30) %>%
+  mutate(synis.id = as.integer(synis.id),
+         hour = floor(kl.kastad),
+         min = round((kl.kastad - hour) * 60, 0),
+         date = ymd_hm(paste0(ar,"-",man,"-",dags,"- ",hour,":",min))) %>%
+  select(sample.id = synis.id,
+         date,
+         station.id = stod,
+         long = lon,
+         lat,
+         depth = dypi,
+         temperature = botnhiti) %>%
+  arrange(sample.id) %>%
+  tbl_df()
+
+fish <- 
+  all.kv %>%
+  filter(synis.id %in% stations$sample.id) %>%
+  mutate(synis.id = as.integer(synis.id)) %>%
+  group_by(synis.id, tegund) %>%
+  mutate(sex = c('M','F')[pmax(1,kyn)],
+         maturity_stage = pmax(1,pmin(kynthroski,2))) %>%
+  select(sample.id = synis.id, sex, maturity_stage,
+         age = aldur, length = lengd, ungutted.weight=oslaegt,
+         gutted.weight=slaegt,
+         liver.weight=lifur,
+         gonad.weight=kynfaeri,
+         species=tegund)
+
+stations %>%
+  write.csv("data/stations.csv", row.names = FALSE)
+stations %>%
+  write.csv("/net/www/export/home/hafri/einarhj/public_html/data/stations.csv",
+            row.names = FALSE)
+system("chmod a+r /net/www/export/home/hafri/einarhj/public_html/data/stations.csv")
+
+# get top 10 species with most stations
+top10 <- fish %>%  
+  group_by(species) %>% 
+  summarise(n = n()) %>% 
+  arrange(desc(n)) %>%
+  slice(1:10)
+
+# store stuff
+fish <- fish  %>%
+  filter(species %in% top10$species) %>%
+  arrange(sample.id)
+
+fish %>% write.csv("data/fish.csv", row.names = FALSE)
+fish  %>%
+  write.csv("/net/www/export/home/hafri/einarhj/public_html/data/fish.csv",
+            row.names = FALSE)
+system("chmod a+r /net/www/export/home/hafri/einarhj/public_html/data/fish.csv")
+
+# -------------------------------------------------------------------------
+# gis data
+
+# do not include "sker"
+i <- biceland$flaki %in% c("mainland","eyjar")
+df <- biceland@data[i,]
+d <- rgeos::gSimplify(biceland[i,],0.01,topologyPreserve=TRUE) %>%
+  sp::SpatialPolygonsDataFrame(df, match.ID = TRUE) %>%
+  ggplot2::fortify(iceland_sparse) %>%
+  select(long, lat, group) %>%
+  rename(id = group)
+df <- data.frame(id = unique(d$id))
+df$group <- 1:nrow(df)
+d <- d %>%
+  left_join(df) %>%
+  select(-id)
+readr::write_csv(d, "data/iceland.csv")
+d %>% 
+  write.csv("/net/www/export/home/hafri/einarhj/public_html/data/iceland.csv",
+            row.names = FALSE)
+system("chmod a+r /net/www/export/home/hafri/einarhj/public_html/data/iceland.csv")
+```
+
+# Preamble
+
+### Libraries used
+
+```{r message = FALSE}
+library(knitr)
+library(printr)
+library(readr)
+library(lubridate)
+library(ggplot2)
+library(maps)
+library(mapdata)
+library(ggmap)
+library(leaflet)
+library(dplyr)
+```
+
+### The data
+
+```{r, warning = FALSE, message = FALSE, fig.width = 15, fig.height = 15}
+iceland <- read_csv("http://www.hafro.is/~einarhj/data/iceland.csv")
+glimpse(iceland)
+```
+
+... so we have some `r nrow(iceland)` observations/records/rows with what looks like geographical reference (Longitude and Latitude).
+
+### Ever plotted these kind of data in Excel?:
+
+* long on the x-axis
+* lat on the y-axis
+
+...
+
+...
+
+...
+
+...
+
+
+![xcel](http://www.hafro.is/~einarhj/img/xcel_gis.gif)
+
+# Some geom_trials
+
+### pass (pipe) the basic data into an ggplot object
+
+```{r, warning = FALSE, message = FALSE}
+p <- iceland %>%
+  ggplot(aes(long,lat)) + labs(x = NULL, y = NULL) + theme_bw()
+```
+
+if your are curious check out (output not shown):
+```{r, eval = FALSE}
+str(p)
+```
+
+#### geom_point
+
+```{r, warning = FALSE, message = FALSE}
+p + geom_point(size = 1)
+```
+
+ok, so lets try a line plot ..
+
+#### geom_line
+
+```{r, warning = FALSE, message = FALSE}
+p + geom_line(lwd = 0.1)
+```
+
+Why does this not work?
+
+```{r, tidy=FALSE, render.args=list(help=list(sections=c('description')))}
+?geom_line
+```
+
+#### geom_path
+
+```{r, warning = FALSE, message = FALSE}
+p + geom_path()
+```
+
+Why does this almost work?
+
+```{r, tidy=FALSE, render.args=list(help=list(sections=c('description')))}
+?geom_path
+```
+
+#### geom_path
+
+... add group as a colour
+
+```{r, warning = FALSE, message = FALSE}
+p + geom_path(aes(colour = factor(group)))
+```
+
+... add group as group !
+
+```{r, warning = FALSE, message = FALSE}
+p + geom_path(aes(group = group))
+```
+
+#### geom_polygon
+
+```{r, warning = FALSE, message = FALSE}
+p + geom_polygon(fill = "grey", alpha = 0.5)
+```
+
+Lets group it and ...
+
+```{r, warning = FALSE, message = FALSE}
+p + geom_polygon(aes(group = group), fill = "grey", alpha = 0.5)
+```
+
+But what if I have a different "sized" figure (width 8, height 2)? 
+```{r, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 2}
+p + geom_polygon(aes(group = group), fill = "grey", alpha = 0.5)
+```
+
+#### Remedy is to use coord_map
+```{r, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 2}
+m <- p + geom_polygon(aes(group = group), fill = "grey", alpha = 0.4) + coord_map()
+m
+```
+
+Ergo: A map is just a fancy xy-plot :-)
+
+#### Data for your country
+
+```{r}
+fellows_world <- map_data("worldHires") %>%
+  filter(region %in% c("Djibouti", "Dominica", "Namibia", "Tanzania", "Uganda"))
+glimpse(fellows_world)
+fellows_world %>%
+  ggplot() + 
+  labs(x = NULL, y = NULL) + 
+  theme_bw() +
+  coord_map() +
+  geom_polygon(aes(long, lat, group = group, fill = region)) +
+  scale_fill_brewer(palette = "Set1")
+```
+
+
+## Put some fish related data on maps
+
+```{r, warning = FALSE}
+st <- read_csv("http://www.hafro.is/~einarhj/data/stations.csv")
+glimpse(st)
+m + geom_point(data = st,aes(long, lat), col="red")
+m + geom_point(data = st,aes(long,lat, size = depth))
+m + geom_point(data = st,aes(long,lat, colour = depth))
+m + geom_point(data = st, aes(long, lat, colour = temperature)) +
+  scale_color_gradientn(colours = rainbow(5)[5:1])
+```
+
+#### Catch per tow
+
+```{r}
+fish <- read_csv("http://www.hafro.is/~einarhj/data/fish.csv")
+glimpse(fish)
+```
+
+Weight is not measured in all cases, lets gestimate it (in kg):
+```{r}
+fish <- fish %>%
+  mutate(weight = 0.00001 * length^3)
+```
+Sum the catch (in kg) per sample.id
+```{r}
+d <- fish %>%
+  group_by(sample.id) %>%
+  summarise(catch = sum(weight, na.rm = TRUE),
+            length = mean(length, na.rm = TRUE))
+glimpse(d)
+```
+
+```{r}
+d <- st %>%
+  left_join(d) %>%
+  mutate(catch = ifelse(is.na(catch), 0, catch), # put zero if not catch at statio
+         length = ifelse(is.na(length), 0, length))
+
+d2 <- d %>% filter(year(date) == 2015)
+m + 
+  geom_point(data = d2,aes(long, lat, size = catch), col = "red", alpha = 0.3) +
+  scale_size_area(max_size = 15)
+p <- m + geom_point(data = d2, aes(long, lat, colour = length))
+p + scale_color_gradientn(colours = rainbow(5))
+p + scale_color_gradient(low = "red",high = "blue", trans = "sqrt")
+
+
+p <- ggplot(d2)
+p + geom_point(aes(depth,catch))
+p + geom_point(aes(depth,temperature, colour = lat>65))
+p + geom_point(aes(depth,temperature, colour = lat>65))
+
+```
+
+
+## ggmap library
+
+see: [Spatial Visualization with ggplot2](https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf)
+
+
+### Get_map and plot
+
+```{r, message = FALSE}
+m2 <- get_map(location = c(-19,65), zoom= 6, maptype = "satellite", source = "google")
+m2 <- ggmap(m2) +
+  labs(x = NULL, y = NULL)
+```
+
+Add some data
+```{r, warning = FALSE}
+m2 + 
+  geom_point(data = d,aes(long, lat, size = catch), col = "red", alpha = 0.3) +
+  scale_size_area(max_size = 15)
+```
+
+ok, so some stations are outside the map. Remedy:
+```{r, message = FALSE, warning = FALSE}
+bbox <- c(left = min(st$long, na.rm = TRUE), 
+          bottom = min(st$lat, na.rm = TRUE),
+          right = max(st$long, na.rm = TRUE),
+          top = max(st$lat, na.rm = TRUE))
+m2 <- get_map(location = bbox, source = "osm")
+ggmap(m2) +
+  labs(x = NULL, y = NULL) +
+  geom_point(data = d,aes(long, lat, size = catch), col = "red", alpha = 0.3) +
+  scale_size_area(max_size = 15)
+```
+
+Specialized maps:
+```{r}
+ggmap(gisland::get_sjokort(bbox = bbox, r = 1.1, zoom = 7)) +
+  labs(x = NULL, y = NULL) +
+  geom_point(data = d,aes(long, lat, size = catch), col = "red", alpha = 0.3) +
+  scale_size_area(max_size = 15)
+```
+
+
+## leaflet
+
+```{r}
+leaflet() %>%
+  addTiles() %>%
+  addCircles(data = d, lng = ~long, lat = ~lat, weight = 1, col="red",
+             radius = sqrt(d$catch) * 1e3)
+```
+
+see: [Leaflet home page](http://rstudio.github.io/leaflet)
+
+```{r}
+fellows_world <- map("worldHires", exact = TRUE, fill = TRUE,
+                 plot = FALSE,
+                 region = c("Djibouti", "Dominica", "Namibia", "Tanzania", "Uganda"))
+
+leaflet() %>%
+  addTiles() %>%
+  addPolygons(data=fellows_world, fillColor = "red", stroke = FALSE)
+```
+
+## More readings
+
+* [Spatial data in R: Using R as a GIS](https://pakillo.github.io/R-GIS-tutorial)
+
