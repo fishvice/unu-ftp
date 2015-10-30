@@ -11,3 +11,11 @@
 *.toc
 *.toc
 *.vrb
+index.html
+section*.html
+section*_files
+garbage
+compile.R
+Makefile
+rsconnect
+notes

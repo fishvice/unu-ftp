@@ -1,0 +1,14 @@
+---
+title: The 2015 R-course space of the stock assessment at unu-ftp
+---
+
+This space contains class notes. It is live in the sense that it is still evolving.
+
+The repository location of this space is on [github](https://github.com/fishvice/unu-ftp).
+
+Useful pages:
+
+* [knitr](http://yihui.name/knitr)
+* [dplyr](https://cran.rstudio.com/web/packages/dplyr/vignettes)
+* [ggplot2](http://docs.ggplot2.org/current)
+* [ggplot2 book](https://github.com/hadley/ggplot2-book)
