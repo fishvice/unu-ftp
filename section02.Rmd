@@ -1,5 +1,5 @@
 ---
-title: Notes on `dplyr`
+title: Data manipulations
 ---
 
 ```{r, echo = FALSE, message = FALSE}
@@ -7,12 +7,12 @@ knitr::opts_chunk$set(collapse = T, comment = "#>")
 options(dplyr.print_min = 4L, dplyr.print_max = 4L)
 ```
 
+The R code for this document can be obtained [here](http://www.hafro.is/~einarhj/education/2015/unu-ftp/section02.R).
+
 ### Libraries needed:
 
 ```{r, message = FALSE}
-library(readr)
 library(dplyr)
-library(lubridate)
 ```
 
 # Basic dataframe manipulations
@@ -58,8 +58,9 @@ The dplyr [cheat sheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-
 ## The data
 
 ```{r}
-d <- read_csv("http://www.hafro.is/~einarhj/data/fish.csv") %>%
-  full_join(read_csv("http://www.hafro.is/~einarhj/data/stations.csv"))
+d <- read.csv("http://www.hafro.is/~einarhj/data/fish.csv", stringsAsFactors = FALSE) %>%
+  full_join(read.csv("http://www.hafro.is/~einarhj/data/stations.csv", stringsAsFactors = FALSE)) %>%
+  tbl_df()
 glimpse(d)
 ```
 
@@ -130,7 +131,7 @@ In the above case you had in the second line to type in the long names. If you a
 
 ```{r, eval = FALSE}
 d %>%
-  rename(id = sample.id,
+  rename(id -> id.sample.id,
          l = length,
          d  = depth) %>%
   select(id, l, d)
@@ -144,27 +145,27 @@ d %>%
 
 `filter()` allows you to select a subset of rows in a data frame. The arguments are logical expressions that filter the data frame:
 
-For example we can select only species coded as 1:
+For example we can select only species named Cod
 
 ```{r}
-d %>% filter(species == 1)
+d %>% filter(species == "Cod")
 ```
 
-Selecting species 1 or 5:
+Selecting species Cod or Redfish:
 ```{r, eval = FALSE}
-d %>% filter(species == 1 | species == 5)
+d %>% filter(species == "Cod" | species == "Redfish")
 ```
 
 The `|` stands for __or__.
 
 A more comphrensive syntax could be:
 ```{r, eval = FALSE}
-d %>% filter(species %in% c(1,5))
+d %>% filter(species %in% c("Cod","Redfish"))
 ```
 
-Species 1 and 5, only females:
+Selecting species Cod or Redfish, only females:
 ```{r}
-d %>% filter(species %in% c(1,5), sex == "F")
+d %>% filter(species %in% c("Cod","Redfish"), sex == "Female")
 ```
 
 A list of logical operators that are useful when filtering data:
@@ -219,7 +220,7 @@ d %>%
   arrange(depth)
 ```
 
-Here the data are reordered by depth. Hence the top 4 lines in the output "shows" the shallowest stations along with the other information.
+Here the data are reordered by depth. Hence the top 4 lines in the output are the shallowest stations along with the other information.
 
 Use `desc()` to order a column in descending order:
 
@@ -248,16 +249,25 @@ d %>%
 Besides selecting sets of existing columns, it's often useful to add new columns that are functions of existing columns.  This is the job of `mutate()`. E.g. since not all measured fish are weighted even though length is always recorded we can gestimate the weights from length using some constants:
 ```{r}
 d %>%
-  select(length, ungutted.weight) %>%
-  mutate(derived.weight = 0.01 * length^3)
+  mutate(derived.weight = 0.01 * length^3) %>%
+  select(sample.id, length, weight, derived.weight)
 ```
+
+Note: The last step is just done to show some limited output.
 
 One can also change existing variables, here one converts temperature from Celius to Kelvin:
 ```{r}
 d %>%
-  select(sample.id, temperature) %>%
   mutate(temperature = temperature + 273.15) %>%
+  select(sample.id, temperature) %>%
   arrange(temperature)
+```
+
+If we did not want to make a new column for weight, but rather put the derived weight into the existing column only in those cases were it was not measured then we could do:
+```{r}
+d %>%
+  mutate(weight = ifelse(is.na(weight), 0.01 * length^3, weight)) %>%
+  select(sample.id, length, weight)
 ```
 
 ## Summarise multiple values to a single value `summarise()`
@@ -321,7 +331,9 @@ d %>%
             no.big.fish   = sum(length > 130))
 ```
 
-## Combine dataset
+## Combining datatables
+
+See the [Two-table verbs](https://cran.rstudio.com/web/packages/dplyr/vignettes/two-table.html) tutorial.
 
 ![combine](img/combine.png)
 

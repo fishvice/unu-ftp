@@ -1,11 +1,6 @@
 ---
-title: Section 4
+title: More stuff to come ...
 ---
 
-Some nice words
+... pending
 
----
-
-# Something borrowed
-
-... some more nice words

@@ -3,8 +3,8 @@ html_document:
   toc: yes
   toc_depth: 2
   theme: flatly
-  fig_height: 4
-  fig_width: 6
+  fig_height: 3
+  fig_width: 5
   highlight: tango
   mathjax: null
   lib_dir: libs

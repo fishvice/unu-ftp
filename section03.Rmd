@@ -1,100 +1,286 @@
 ---
-title: Mapping using ggplot2
+title: ggplot2
 ---
 
----
-
-```{r eval=FALSE, echo=FALSE}
-# ------------------------------------------------------------------------------
-# data preparations
-library(fjolst)
-library(dplyr)
-library(readr)
-library(lubridate)
-library(gisland)
-
-# -----------------------------------------------------------------------------
-# fish data
-stations <- 
-  stodvar %>% 
-  filter(synaflokkur == 30) %>%
-  mutate(synis.id = as.integer(synis.id),
-         hour = floor(kl.kastad),
-         min = round((kl.kastad - hour) * 60, 0),
-         date = ymd_hm(paste0(ar,"-",man,"-",dags,"- ",hour,":",min))) %>%
-  select(sample.id = synis.id,
-         date,
-         station.id = stod,
-         long = lon,
-         lat,
-         depth = dypi,
-         temperature = botnhiti) %>%
-  arrange(sample.id) %>%
-  tbl_df()
-
-fish <- 
-  all.kv %>%
-  filter(synis.id %in% stations$sample.id) %>%
-  mutate(synis.id = as.integer(synis.id)) %>%
-  group_by(synis.id, tegund) %>%
-  mutate(sex = c('M','F')[pmax(1,kyn)],
-         maturity_stage = pmax(1,pmin(kynthroski,2))) %>%
-  select(sample.id = synis.id, sex, maturity_stage,
-         age = aldur, length = lengd, ungutted.weight=oslaegt,
-         gutted.weight=slaegt,
-         liver.weight=lifur,
-         gonad.weight=kynfaeri,
-         species=tegund)
-
-stations %>%
-  write.csv("data/stations.csv", row.names = FALSE)
-stations %>%
-  write.csv("/net/www/export/home/hafri/einarhj/public_html/data/stations.csv",
-            row.names = FALSE)
-system("chmod a+r /net/www/export/home/hafri/einarhj/public_html/data/stations.csv")
-
-# get top 10 species with most stations
-top10 <- fish %>%  
-  group_by(species) %>% 
-  summarise(n = n()) %>% 
-  arrange(desc(n)) %>%
-  slice(1:10)
-
-# store stuff
-fish <- fish  %>%
-  filter(species %in% top10$species) %>%
-  arrange(sample.id)
-
-fish %>% write.csv("data/fish.csv", row.names = FALSE)
-fish  %>%
-  write.csv("/net/www/export/home/hafri/einarhj/public_html/data/fish.csv",
-            row.names = FALSE)
-system("chmod a+r /net/www/export/home/hafri/einarhj/public_html/data/fish.csv")
-
-# -------------------------------------------------------------------------
-# gis data
-
-# do not include "sker"
-i <- biceland$flaki %in% c("mainland","eyjar")
-df <- biceland@data[i,]
-d <- rgeos::gSimplify(biceland[i,],0.01,topologyPreserve=TRUE) %>%
-  sp::SpatialPolygonsDataFrame(df, match.ID = TRUE) %>%
-  ggplot2::fortify(iceland_sparse) %>%
-  select(long, lat, group) %>%
-  rename(id = group)
-df <- data.frame(id = unique(d$id))
-df$group <- 1:nrow(df)
-d <- d %>%
-  left_join(df) %>%
-  select(-id)
-readr::write_csv(d, "data/iceland.csv")
-d %>% 
-  write.csv("/net/www/export/home/hafri/einarhj/public_html/data/iceland.csv",
-            row.names = FALSE)
-system("chmod a+r /net/www/export/home/hafri/einarhj/public_html/data/iceland.csv")
+```{r, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(collapse = T, comment = "#>", warning = FALSE, message = FALSE)
+options(dplyr.print_min = 4L, dplyr.print_max = 4L)
 ```
 
-# Preamble
+# ggplot2
+
+* In this course we will focus on the abilities of the `ggplot2` package
+* There are other plotting environments in R:
+    - base plots
+    - trellis
+    - ...
+* In ggplot2, plots are built by layering graphical components where the components are summed together to form the plot like layered transparencies on a projector
+* A ggplot layer is composed of four parts:
+    - data and aesthetic mapping
+    - Statistical transformations (stat\_*), e.g. identity, mean, sum, etc..
+     -Geometric object (geom\_*), e.g x-y scatterplot, barplot, boxplot etc
+    - Position adjustment, stack or dodge
+* Usually some common elements between layers (e.g. same data, different geoms)
+* Defaults are used for the layers whenever components are not specified
+
+### Libraries needed:
+
+```{r, message = FALSE}
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+```
+
+### Some data
+
+```{r}
+d.all <- read.csv("http://www.hafro.is/~einarhj/data/fish.csv", stringsAsFactors = FALSE) %>%
+  left_join(read.csv("http://www.hafro.is/~einarhj/data/stations.csv", stringsAsFactors = FALSE)) %>%
+  tbl_df()
+glimpse(d.all)
+d.all %>%
+  group_by(species) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+```
+
+### Subsampling the data
+
+The above data is a bit "dense". For illustrative purpose we will use only a subsample of the data (take one fith for further illustrative explorations):
+
+```{r}
+d <- d.all %>%
+  sample_frac(1/5, replace = FALSE)
+```
+
+So now we have:
+
+```{r}
+d %>%
+  group_by(species) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+```
+
+## First principles
+
+Creat an empty plot:
+```{r}
+p <- ggplot()
+```
+
+Check out:
+```{r, eval = FALSE}
+class(p)
+str(p)
+```
+
+Add layer to the plot:
+```{r, warning = FALSE}
+p + layer(data = d,
+          mapping=aes(x = length, y = weight), 
+          geom = 'point',
+          stat='identity',
+          position = 'identity')
+```
+
+### Defaults
+
+The full specification of `layer` is rather cumbersome to write out as each component of a layer needs to specified. It is therefor more common to use a shorthand for common types of plots (`geom_...`). And various syntaxes can lead to the same results, e.g. the following commands all give the same plot output: 
+```{r, eval = FALSE}
+ggplot()         + geom_point(data = d, aes(length, weight))
+ggplot(data = d) + geom_point(aes(x = length,   y = weight))
+ggplot(d)        + geom_point(aes(length,           weight))
+ggplot()         + geom_point(data = d, aes(length, weight))
+d %>% ggplot()   + geom_point(data = d, aes(length, weight))
+```
+
+## Some basic controls
+
+```{r, warning = FALSE}
+p <- ggplot(data = d, aes(length, weight))
+p + geom_point(size = 1)
+p + geom_point(alpha = 0.01)
+p + geom_point(size = 1, alpha = 0.01, col = "red")
+p2 <- p + geom_point() +
+  labs(x = "Length [cm]",
+       y = "Weigth [g]",
+       title = "Weight as a function of length")
+p2
+```
+
+Change the theme:
+```{r}
+p2 + theme_bw()
+```
+
+Check out:
+```{r}
+?theme
+```
+
+### More on Aesthetic mappings (aes)?
+
+Aesthetic mappings define the role of different variables in the
+dataset:
+
+* x and y is natural. But one can have
+    - size
+    - linetype
+    - shape
+    - colour
+    - fill
+    - ...
+* Aesthetics can be constants (as above) or as data variable
+    - If you use variable they are defined within `aes()`
+
+### Example of using variable species as colour
+
+```{r}
+p <- d %>%
+  ggplot(aes(age , weight, col = species)) + 
+  theme_bw() +
+  geom_point(size = 2, alpha = 0.3)
+p
+```
+
+Different colour scheme:
+```{r}
+p1 <- p + scale_colour_brewer(palette = "Set1")
+p1
+```
+
+Limit axes:
+```{r}
+p1 + xlim(0,20) + ylim(0,20000)
+```
+
+A litte spreading out of the data (age):
+```{r}
+d %>%
+  ggplot(aes(age , weight, col = species)) + 
+  theme_bw() +
+  geom_jitter(size = 2, alpha = 0.3) +
+  scale_colour_brewer(palette = "Set1") +
+  xlim(0,20) + ylim(0,20000)
+```
+
+### Example of applying a summary and then plot
+
+A summary by species and age:
+```{r}
+d2 <- d %>%
+  group_by(species, age) %>%
+  summarise(n   =   n(),
+            m   =   mean(length),
+            q50 =   quantile(length, probs = 0.50),
+            q05 =   quantile(length, probs = 0.05),
+            q95 =   quantile(length, probs = 0.95))
+p <- d2 %>%
+  ggplot(aes(age, m, col = species)) +
+  theme_bw() +
+  geom_point() +
+  scale_colour_brewer(palette = "Set1") + 
+  xlim(0,20) +
+  labs(x = "Age", y = "Mean length")
+p
+```
+
+Add another layer:
+```{r}
+p + geom_line()
+p + geom_smooth(aes(fill = species))
+```
+
+One needs put the colour of fill to the same as the colour of the points (results not shown):
+```{r, eval = FALSE}
+p + geom_smooth(aes(fill = species)) +
+  scale_fill_brewer(palette = "Set1")
+```
+
+Something on the distribution (spread) of the data:
+```{r}
+p2 <- p +
+  geom_linerange(aes(ymin = q05,
+                     ymax = q95))
+p2
+```
+
+A bit of a busy plot, lets split the plots by species:
+
+```{r}
+p2 + facet_wrap(~ species)
+```
+
+Different y-scale for each panel:
+
+```{r}
+p2 + facet_wrap(~ species, scale = "free_y")
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+Make an equivalent plot as above but use the median rather than the mean as the point value.
+
+What is "overdone" in this plot?
+</div>
+</div>
+
+How many measurements of fish per age group:
+
+```{r}
+d2 %>%
+  ggplot() +
+  geom_text(aes(age, m, label = n), size = 2) +
+  facet_wrap(~ species, scale = "free_y")
+```
+
+Not not very informative. Would be better to use another form of a plot to represent the number of measurement:
+
+```{r}
+p <- d2 %>%
+  ggplot() +
+  geom_point(aes(age, n)) +
+  xlim(0,20)
+p
+p + facet_wrap(~ species)
+p + facet_wrap(~ species, scale = "free_y") +
+  labs(x = "Age", y = NULL, title = "Number of fish measured in each age group")
+```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+Why is the y-scale for some species not spanning the spread of the number of fish measured?
+
+"Fix" the problem and repeat the plot
+
+Are these the actual number of fish measured?
+</div>
+</div>
+
+### Example geoms -- histogram (incomplete)
+
+```{r}
+ggplot(d, aes(length)) + geom_histogram()
+```
+
+Check out the message above. It says we can specify the binwith, e.g.
+
+```{r}
+ggplot(d, aes(length)) + geom_histogram(binwidth = 1)
+```
+
+So in the above plot we have the number of fish per 1 cm bins. Play with the binwidth to see the effect.
+
+### ... more example to come
+
+# Maps in ggplot
+
+## Preamble
 
 ### Libraries used
 
@@ -136,18 +322,13 @@ glimpse(iceland)
 
 ![xcel](http://www.hafro.is/~einarhj/img/xcel_gis.gif)
 
-# Some geom_trials
+## Some geom_trials
 
 ### pass (pipe) the basic data into an ggplot object
 
 ```{r, warning = FALSE, message = FALSE}
 p <- iceland %>%
   ggplot(aes(long,lat)) + labs(x = NULL, y = NULL) + theme_bw()
-```
-
-if your are curious check out (output not shown):
-```{r, eval = FALSE}
-str(p)
 ```
 
 #### geom_point
@@ -236,12 +417,21 @@ fellows_world %>%
   scale_fill_brewer(palette = "Set1")
 ```
 
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+Select your country from the fellows_world data.frame and repeat the plot.
+
+</div>
+</div>
 
 ## Put some fish related data on maps
 
+Lets extract the unique station information from our data:
 ```{r, warning = FALSE}
 st <- read_csv("http://www.hafro.is/~einarhj/data/stations.csv")
-glimpse(st)
+  
 m + geom_point(data = st,aes(long, lat), col="red")
 m + geom_point(data = st,aes(long,lat, size = depth))
 m + geom_point(data = st,aes(long,lat, colour = depth))
@@ -252,8 +442,7 @@ m + geom_point(data = st, aes(long, lat, colour = temperature)) +
 #### Catch per tow
 
 ```{r}
-fish <- read_csv("http://www.hafro.is/~einarhj/data/fish.csv")
-glimpse(fish)
+fish <- read.csv("http://www.hafro.is/~einarhj/data/fish.csv")
 ```
 
 Weight is not measured in all cases, lets gestimate it (in kg):
@@ -263,35 +452,38 @@ fish <- fish %>%
 ```
 Sum the catch (in kg) per sample.id
 ```{r}
-d <- fish %>%
+catch <- fish %>%
   group_by(sample.id) %>%
   summarise(catch = sum(weight, na.rm = TRUE),
             length = mean(length, na.rm = TRUE))
-glimpse(d)
+glimpse(catch)
 ```
 
+
 ```{r}
-d <- st %>%
-  left_join(d) %>%
+catch.all <- st %>%
+  left_join(catch) %>%
   mutate(catch = ifelse(is.na(catch), 0, catch), # put zero if not catch at statio
          length = ifelse(is.na(length), 0, length))
 
-d2 <- d %>% filter(year(date) == 2015)
+catch <- catch.all %>% filter(year(date) == 2015)
 m + 
-  geom_point(data = d2,aes(long, lat, size = catch), col = "red", alpha = 0.3) +
-  scale_size_area(max_size = 15)
-p <- m + geom_point(data = d2, aes(long, lat, colour = length))
-p + scale_color_gradientn(colours = rainbow(5))
-p + scale_color_gradient(low = "red",high = "blue", trans = "sqrt")
-
-
-p <- ggplot(d2)
-p + geom_point(aes(depth,catch))
-p + geom_point(aes(depth,temperature, colour = lat>65))
-p + geom_point(aes(depth,temperature, colour = lat>65))
-
+  geom_point(data = catch, 
+             aes(long, lat, size = catch), 
+             col = "red", 
+             alpha = 0.3) +
+  scale_size_area(max_size = 15) +
+  labs(title = "Catch per tow in 2015", size = "Catch [kg]")
 ```
 
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+Plot the catch per tow for the years 1985, 1990, 1995, 2000, 2005, 2010 and 2015 as separate panels.
+
+</div>
+</div>
 
 ## ggmap library
 
@@ -304,13 +496,23 @@ see: [Spatial Visualization with ggplot2](https://journal.r-project.org/archive/
 m2 <- get_map(location = c(-19,65), zoom= 6, maptype = "satellite", source = "google")
 m2 <- ggmap(m2) +
   labs(x = NULL, y = NULL)
+m2
 ```
+
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+Lets pause here, you may be interested in getting a map of your country ;-)
+</div>
+</div>
 
 Add some data
 ```{r, warning = FALSE}
 m2 + 
-  geom_point(data = d,aes(long, lat, size = catch), col = "red", alpha = 0.3) +
-  scale_size_area(max_size = 15)
+  geom_point(data = catch,aes(long, lat, size = catch), col = "red", alpha = 0.3) +
+  scale_size_area(max_size = 15) +
+  labs(title = "Catch per tow in 2015", size = "Catch [kg]")
 ```
 
 ok, so some stations are outside the map. Remedy:
@@ -322,31 +524,47 @@ bbox <- c(left = min(st$long, na.rm = TRUE),
 m2 <- get_map(location = bbox, source = "osm")
 ggmap(m2) +
   labs(x = NULL, y = NULL) +
-  geom_point(data = d,aes(long, lat, size = catch), col = "red", alpha = 0.3) +
-  scale_size_area(max_size = 15)
+  geom_point(data = catch,
+             aes(long, lat, size = catch),
+             col = "red",
+             alpha = 0.3) +
+  scale_size_area(max_size = 15) +
+  labs(title = "Catch per tow in 2015", size = "Catch [kg]")
 ```
 
 Specialized maps:
 ```{r}
 ggmap(gisland::get_sjokort(bbox = bbox, r = 1.1, zoom = 7)) +
   labs(x = NULL, y = NULL) +
-  geom_point(data = d,aes(long, lat, size = catch), col = "red", alpha = 0.3) +
+  geom_point(data = catch,
+             aes(long, lat, size = catch),
+             col = "red",
+             alpha = 0.3) +
   scale_size_area(max_size = 15)
 ```
 
 
-## leaflet
+# leaflet
 
 ```{r}
 leaflet() %>%
   addTiles() %>%
-  addCircles(data = d, lng = ~long, lat = ~lat, weight = 1, col="red",
-             radius = sqrt(d$catch) * 1e3)
+  addCircles(data = catch, 
+             lng = ~long,
+             lat = ~lat,
+             weight = 1, 
+             col="red",
+             radius = sqrt(catch$catch) * 1e3)
 ```
 
 see: [Leaflet home page](http://rstudio.github.io/leaflet)
 
-```{r}
+<div class="panel panel-warning">
+<div class="panel-heading">Exercise</div>
+<div class="panel-body">
+
+Try out the following scipt:
+```{r, eval = FALSE}
 fellows_world <- map("worldHires", exact = TRUE, fill = TRUE,
                  plot = FALSE,
                  region = c("Djibouti", "Dominica", "Namibia", "Tanzania", "Uganda"))
@@ -356,7 +574,14 @@ leaflet() %>%
   addPolygons(data=fellows_world, fillColor = "red", stroke = FALSE)
 ```
 
-## More readings
+</div>
+</div>
+
+
+
+# More readings
 
 * [Spatial data in R: Using R as a GIS](https://pakillo.github.io/R-GIS-tutorial)
+* ...
+* ...
 
