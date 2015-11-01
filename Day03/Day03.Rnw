@@ -127,7 +127,23 @@ if({\color{lblue}condition})\{
 \end{column}
 \end{columns}
 \end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}[fragile]
+\frametitle{if sentences - example}
+<<eval=FALSE>>=
+dat <- read.csv2('../species/species-8.csv')
+
+## check if depth data is available for all
+## entries, if not do something
+if(sum(is.na(dat$depth))>0){
+    print('Some depth data missing')
+}
+@
+
+\end{frame}
+
+
 \begin{frame}[fragile]
 \frametitle{if and else sentences}
 \bi Sometimes we would like to check for more than one condition
@@ -153,6 +169,27 @@ if({\color{lblue}condition 1})\{
 \end{columns}
 \end{frame}
 
+
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{if - else sentences - example}
+<<eval=FALSE>>=
+dat <- read.csv2('../species/species-8.csv')
+
+## check if depth data is missing for more than 
+## 10 entries
+if(sum(is.na(dat$depth))>10){
+    print('More that 10 entries missing')
+} else if(sum(is.na(dat$depth))>0){
+    print('Less 10 entries missing')
+} else {
+  print('No depth missing')
+}
+@
+
+\end{frame}
+
+
 \begin{frame}[fragile]
 \frametitle{ifelse sentences}
 \bi It is often so that we only have two conditions 
@@ -171,6 +208,19 @@ ifelse({\color{lblue}condition},
 \end{column}
 \end{columns}
 \end{frame}
+
+\begin{frame}[fragile,shrink=0.95]
+\frametitle{ifelse sentences - example}
+<<eval=FALSE>>=
+dat <- read.csv2('../species/species-8.csv')
+
+## find all missing entries and replace them
+dat$depth <- ifelse(is.na(dat$depth),0,
+                    dat$depth)
+@
+
+\end{frame}
+
 
 \begin{frame}[fragile]
 \frametitle{for-loop}
@@ -196,6 +246,7 @@ for({\color{lblue}index} in {\color{lblue}vector})\{
 \end{frame}
 
 
+
 \begin{frame}[fragile]
 \frametitle{while-loop}
 \bi While-loops are similar to for-loops
@@ -216,6 +267,24 @@ while({\color{lblue}condition})\{
 \end{column}
 \end{columns}
 \end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Loops, examples}
+<<eval=FALSE>>=
+## find the number of entries in the data
+n <- nrow(dat)
+
+## calculate the mean length old fashion way
+ML <- 0
+for(i in 1:n){
+  ML <- ML + dat$length[i]
+}
+ML <- ML/n
+@
+
+
+\end{frame}
+
 
 
 \frame{
@@ -243,7 +312,7 @@ while({\color{lblue}condition})\{
 \end{column}
 \begin{column}{0.95\textwidth}
 \begin{alltt}
-{\color{lblue}neFunction} <- function({\color{lblue}argument1}, {\color{lblue}argument2}, {\color{lblue}...} )\{
+{\color{lblue}nameofFunction} <- function({\color{lblue}argument1}, {\color{lblue}argument2}, {\color{lblue}...} )\{
   {\color{lblue}The code of the function}
   return({\color{lblue}object})
 \}
@@ -252,7 +321,202 @@ while({\color{lblue}condition})\{
 \end{columns}
 \end{frame}
 
+\begin{frame}[fragile]
+\frametitle{function}
+<<>>=
+add1 <- function(x){
+  x <- x + 1
+  return(x)
+}
+
+add1(10)
+x
+@
+
+\end{frame}
+
+\frame{
+\frametitle{Class excercise}
+Using your species:
+\bi Define a function that calculates the condition factor of a fish using the formula:
+$$C = 100*(W/L^3)$$
+\item Use the function to calculate the condition factor for all fish that have ungutted weight
+\vs
+\item Assign classification to all fish with body condition less than 0.8 'Malnourished', for 0.8 and above assign "OK".
+\ei
+
+}
+
 \section{Reading data in R}
+\frame{
+\frametitle{Where can we find data}
+\begin{figure}
+  \begin{tikzpicture}[xscale = 1,yscale = 1]
+    \node (lykl)[GenericNodeStyle] at (4,2){Keyboard};
+    \node (tolfr)[GenericNodeStyle] at (-4,2){Other stats software};
+    \node[below of = tolfr](tolff){SPSS,Matlab,SAS};
+    \node (xml)[GenericNodeStyle] at (-4,-2){XML};
+    \node (Excel)[GenericNodeStyle] at (0,2){Excel};
+    \node (dbi)[GenericNodeStyle] at (0,-2){Databases};
+    \node[below of = dbi](sql){ODBC,sqlite,Oracle};
+    \node (R)[GenericNodeStyle] at (0,0){R};
+    \node (text)[GenericNodeStyle] at (4,-2){Textfiles};
+    \node[below of = text](skr){csv,txt,html};
+    \draw[->](lykl)--(R);
+    \draw[->](tolfr)--(R);
+    \draw[<->](Excel)--(R);
+    \draw[<->](dbi)--(R);
+    \draw[<->](text)--(R);
+    \draw[<->](xml)--(R);
+  \end{tikzpicture}
+\end{figure}
+
+
+}
+
+\begin{frame}[fragile]
+\frametitle{Data entered directly into R}
+One of the most useless forms of data enry is the "edit" command in R:
+<<eval=FALSE>>=
+dat <- data.frame(id=numeric(0), species=character(0),
+                  length=numeric(0),age=numeric(0),
+                  lat = numeric(0),lon=numeric(0))
+dat <- edit(dat)
+@
+Note that this only creates variable in R that, unless saved, will disappear when R is closed.
+\end{frame}
+
+\begin{frame}[fragile,shrink=0.8]
+\frametitle{Text files - read in}
+\bi A lot of functions in R deal with reading in text files in various formats
+\vs
+\item Most of these functions are derivatives of \texttt{read.table}, such as \texttt{read.csv} and \texttt{read.delim}
+\ei
+
+<<eval=FALSE>>=
+dat <- 
+  read.table(file = "nameOfFile", ## path to the file
+             header = TRUE,       ## are column names 
+                                  ## at the top
+             dec = '.',           ## decimal sign
+             sep = ' ',           ## column separator symbol
+             skip = 0,            ## num lines at top to skip
+             comment.char = '#')  ## indicating comments
+@
+
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Text files - written out}
+Analoguous to \texttt{read.table} we have \texttt{write.table}:
+<<eval=FALSE>>=
+write.table(dat,
+            file = 'nameOfFile', ## file name
+            col.names = TRUE,    ## write header
+            row.names = FALSE    ## write row names
+            quote = FALSE,       ## characters qouted?
+            sep = ',',
+            dec = '.')
+@
+
+\end{frame}
+
+\frame{
+\frametitle{Location of files}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\begin{figure}
+\begin{tikzpicture}[sibling distance=10em,
+  every node/.style = {shape=rectangle, rounded corners,
+    draw, align=center,
+    top color=white, bottom color=white}],xscale = 0.75,yscale = 0.75]
+  \node {Root}
+    child { node {curr.dir} }
+    child { node {dir1}
+      child { node {dir2}
+        child { node {file1} }
+        child { node {file2} }
+        child { node {file3} }} 
+      child { node {wrong.dir}}};
+\end{tikzpicture}
+
+\end{figure}
+\end{column}
+\begin{column}{0.5\linewidth}
+Assume you want read "file3" from "curr.dir":
+\bi Go up one level to "Root": ".."
+\item Go to dir1: "../dir1"
+\item Go to dir2: "../dir1/dir2"
+\item Locate file2: "../dir1/dir2/file2"
+\ei
+\vspace{3cm}
+
+\end{column}
+\end{columns}
+}
+
+\begin{frame}[fragile]
+\frametitle{Excel files}
+The \texttt{readxl} package provides support to read in Excel files directly into R
+<<eval=FALSE>>=
+library(readxl) ## needs to be installed
+# read_excel reads both xls and xlsx files
+read_excel("my-old-spreadsheet.xls")
+read_excel("my-new-spreadsheet.xlsx")
+
+# Specify sheet with a number or name
+read_excel("my-spreadsheet.xls", sheet = "data")
+read_excel("my-spreadsheet.xls", sheet = 2)
+
+# If NAs are represented by something other than blank cells,
+# set the na argument
+read_excel("my-spreadsheet.xls", na = "NA")
+@
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Connecting to an Access database}
+\texttt{RODBC} provides functions to connect to an Access database
+<<eval=FALSE>>=
+# Load RODBC package
+library(RODBC)
+
+# Connect to Access db
+channel <- odbcConnectAccess("C:/Documents/Name_Of_My_Access_Database")
+
+# Get data
+data <- sqlQuery( channel , "select *
+ from Name_of_table_in_my_database")
+
+# close connection
+close(channel)
+
+@
+
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Class excercise}
+\bi Try the "edit" command, enter some random numbers and save the data to file, open it in Excel and save it as an excel file
+\vs
+\item Open notepad and enter the following data, save it and read into R using \texttt{read.table}:
+\begin{verbatim}
+a   b   c
+1   1.5 cod
+2   2.5 haddock
+\end{verbatim}
+\vs
+\item Install \texttt{readxl} and try to read in the excel data file you created earlier
+\vs
+\item Open an example Access database and run queries from R
+\ei
+\end{frame}
 
 
 \section{Fitting models}
@@ -278,6 +542,8 @@ qplot(x,y) + geom_line(data=data.frame(y=x,x=x), col='red',lwd=2)
 \end{column}
 \end{columns}
 }
+
+
 
 \frame{
 \frametitle{Simple model fitting}
@@ -305,6 +571,22 @@ $$\log(W) = \log(a)+ b*\log(L)$$
 \ei
 
 }
+
+
+\begin{frame}[fragile]
+\frametitle{Let's play a bit}
+<<eval=FALSE>>=
+wlFun <- function(a,b,dat){
+  return(list(p=ggplot(dat,aes(log(length),log(weight))) + 
+                geom_point() + 
+                geom_abline(intercept=-12,slope=3)+
+                ylim(c(0,10)) + xlim(c(0,10)),
+              ss=sum((dat$weight - a - b*log(dat$length))^2)))
+}
+ minke %>% filter(!is.na(weight)) %>% wlFun(-12,3,.)
+@
+
+\end{frame}
 
 \begin{frame}[fragile,shrink=0.95]
 \frametitle{Estimate using R}
