@@ -1,0 +1,297 @@
+---
+title: "Solution to assignment 1"
+output: html_document
+---
+
+```{r,warning=FALSE,message=FALSE,eval=FALSE,echo=FALSE}
+library(fjolst)
+library(dplyr)
+library(data.table)
+
+stations <- 
+  stodvar %>% 
+  filter(synaflokkur == 30) 
+
+samples <- 
+  all.kv %>%
+  filter(synis.id %in% stations$synis.id) %>%# &
+  #           tegund %in% species.key$tegund) %>%
+  group_by(synis.id,tegund) %>%
+  left_join(stations) %>%
+  #    left_join(species.key) %>%
+  mutate(sex = c('M','F')[pmax(1,kyn)],
+         maturity_stage = pmax(1,pmin(kynthroski,2))) %>%
+  select(sample.id = synis.id, year=ar, month=man, day = dags, 
+         station.id = stod, lat, lon, depth = dypi, sex, maturity_stage,
+         age = aldur, length = lengd, ungutted.weight=oslaegt,
+         gutted.weight=slaegt, liver.weight=lifur, gonad.weight=kynfaeri,
+         species=tegund)
+
+tmp <- samples %>%  group_by(species) %>% 
+  summarise(n = length(sample.id),w=sum(!is.na(ungutted.weight)),a=sum(!is.na(age))) %>% 
+  arrange(desc(n)) %>% slice(1:10) 
+
+dir.create('species')
+for(i in tmp$species){
+  samples %>% 
+  filter(species == i) %>% 
+  write.csv2(sprintf('species/species-%s.csv',i))
+}                            
+  
+
+```
+
+# Introduction 
+The dataset in this excercise was collected from the Icelandic groundfish survey, which has been conducted every year since 1984 and features between 530 and 600 haul stations. In the survey, up to 155 unique species have been identified and recorded although the main focus is in the top commercially exploited species such as cod, halibut and saithe. It is used as a basis for assessment for nearly all of the key exploited species and provides valuable information on state of the ecosystem. 
+
+The survey occurs in March every year with sample hauls (stations) taken on more than 500 at fixed locations. For each station the catch is analysed, species identified and length recorded. Age, sex, weight and maturity is recorded for a subsample. 
+
+Each student will be assigned a species which the student will use in this excercise.
+
+
+# Read in and describe the data
+In the folder ''species'' you will find files names according to the shortname in the table above. Read in your species into R and summarise the data (hint: use ''summary'' and ''str''). 
+
+**Solution**:
+
+Code to read in the data (choose species 8, which is Tusk). "read.csv2" reads a csv file with ';' as column separator and ',' as the decimal indicator. 
+
+```{r}
+dat <- read.csv2(file='../species/species-8.csv') 
+```
+alternatively one can use "read.table" 
+```{r,eval=FALSE}
+dat <- read.table(file='../species/species-8.csv',header=TRUE,
+                  dec=',', sep=';')
+```
+
+This assignment assumes that the following packages are installed and loaded:
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+***
+
+* What variables are in the dataset?
+
+**Solution**:
+Here there are a number of possible solutions, the "names" command gives us the names of the variables in the dataset
+```{r}
+names(dat)
+```
+
+One can also use "str" to get a more detail description of the data along with the variables:
+```{r}
+str(dat)
+```
+
+And "summary" gives an alternative overview:
+```{r}
+summary(dat)
+```
+***
+
+* How many obervations are in the data?
+
+**Solution**
+Again a number solutions to this problem exist, the simples is "nrow":
+```{r}
+nrow(dat)
+```
+
+one can also combine "summarise" and "length":
+```{r}
+dat %>%
+summarise(num.obs=length(sample.id))
+```
+Note that the "length" function gives us the length of a particular column and in this context we could have used any of the columns from "dat"
+
+***
+
+* Are there any missing values? 
+    + If so, where and why?
+
+**Solution**
+Let's find the missing values, which in R are called NA's (short for **N**ot **A**vailable). One can quickly find them using the "summary" command:
+```{r,eval=FALSE}
+summary(data)
+```
+where we see that for the information related to the sample, such as position, time and depth, that we rarely see missing values. For the actual measurement this gets a bit tricky, although length, sex and maturity are mostly available, weight and age readings are not as these require more effort to analyse. 
+
+***
+
+## Compile statistics
+* Find the total number of survey stations where the species have been observed
+
+**Solution**:
+Simple R trick, look at the "sample.id" column and find the unique "sample.id" number using the "unique" command. Note that the "station.id" unique did not specify a unique location (sorry for the mistake there;) ).  Then count them using the "length" command:
+```{r}
+dat %>%
+  group_by(year) %>%
+  summarise(num.stations=length(unique(sample.id)))
+```
+
+Alternatively one can use "group_by" and "length":
+```{r}
+dat%>%
+  group_by(year,sample.id) %>%
+  summarise(num.obs=length(sample.id)) %>%
+  ## ungroup to apply summarise to all data
+  ungroup() %>%
+  group_by(year) %>%
+  summarise(num.stations=length(sample.id))
+
+```
+
+and one can calculate the average number of stations where the species is found by:
+```{r}
+dat %>%
+  group_by(year) %>%
+  summarise(num.stations=length(unique(sample.id))) %>%
+  ungroup() %>%
+  summarise(avg.num=mean(num.stations))
+```
+
+
+
+***
+    + Calculate the number of stations by year where the species is found 
+**Solution**
+Lets calculate this and save the calculations to a variable named "num.st.by.year" as we want use it later on
+```{r}
+num.st.by.year <- 
+  dat %>%
+  group_by(year,sample.id) %>% 
+  summarise(num.obs=length(sample.id))
+## show the first few entries:
+num.st.by.year
+```
+***
+    + Illustrate the number of stations by year using a bar plot
+**Solution**
+Use "num.st.by.year" and plot:
+```{r}
+ggplot(num.st.by.year,aes(year)) + geom_bar()
+```
+***
+
+    + Indicate, in another bar plot, spatial changes by assigning different fill color to stations north of 65° degrees latitude
+    
+**Solution**
+Here we need to modify our code from the previous step a bit:
+```{r}
+num.st.by.year <- 
+  dat %>%
+  mutate(NS=ifelse(lat > 65, 'North','South')) %>%
+  ## Note the added group by variable, NS
+  group_by(year,sample.id,NS) %>% 
+  summarise(num.obs=length(sample.id))
+```
+and then we plot:
+```{r}
+ggplot(num.st.by.year,aes(year,fill=NS)) + geom_bar()
+```
+
+And we can also have the bars side by side using "position='dodge'"
+```{r}
+ggplot(num.st.by.year,aes(year,fill=NS)) + geom_bar(position='dodge')
+```
+
+***
+    
+* Number of individuals caught in the survey fluctuates from station to station. Illustrate this by:
+**Solution**
+    + creating a bar-plot of the number individuals caught at each station, by year (using facet_wrap)
+
+```{r,warning=FALSE,message=FALSE}
+num.by.station <- 
+  dat %>% 
+  group_by(year,station.id) %>%
+  summarise(num.obs=length(station.id))
+
+ggplot(num.by.station,aes(station.id)) + geom_bar() +
+  facet_wrap(~year)
+```
+
+***
+
+    + indicate spatial changes by assigning different fill color to fish caught north of 65° degrees latitude
+
+**Solution**
+```{r,warning=FALSE,message=FALSE}
+num.by.station <- 
+  dat %>% 
+  mutate(NS=ifelse(lat > 65, 'North','South')) %>%
+  group_by(year,station.id,NS) %>%
+  summarise(num.obs=length(station.id))
+
+ggplot(num.by.station,aes(station.id,fill=NS)) + geom_bar() +
+  facet_wrap(~year)
+```
+
+    
+* Investigate the age length relationship:
+    + Plot a scatterplot of age and length
+**Solution**
+```{r}
+ggplot(dat,aes(age,length)) + geom_point()
+```
+
+    + **Bonus**: Plot a boxplot of age and length
+**Solution**
+```{r}
+ggplot(dat,aes(age,length,group=round(age))) + geom_boxplot()
+
+```
+Additionally one can look at sex differences using the "interaction" command:
+```{r}
+ggplot(dat,aes(age,length,
+               fill=sex,
+               group=interaction(sex,round(age)))) + 
+  geom_boxplot()
+
+```
+***
+
+    + **Bonus**: Fit a Von Bertalanffy curve to the age length data 
+**Solution**
+```{r}
+nls(length~Linf*(1-exp(-k*(age-t0))),data=dat,
+    start=list(Linf=100,k=0.01,t0=0))
+```
+***
+
+* Investigate changes of over time:
+    + Plot length distributions by year
+**Solution**
+```{r,message=FALSE,warning=FALSE}
+ggplot(dat,aes(length)) + geom_bar() + facet_wrap(~year)
+```
+***
+
+    + Calculate mean length by year and produce a table
+**Solution**
+```{r}
+dat %>%
+  group_by(year) %>%
+  summarise(ml=mean(length),
+            sl=sd(length))
+```
+
+    +  **Bonus**: Calculate mean weight by age and year and plot
+**Solution**
+```{r}
+mw.a.y <- 
+  dat %>%
+  # restrict the analysis to data with weight and age
+  filter(!is.na(ungutted.weight) & !is.na(age)) %>%
+  group_by(year,age) %>%
+  summarise(mw=mean(ungutted.weight),
+            sw=sd(ungutted.weight))
+
+ggplot(mw.a.y,aes(year,mw,col=age,group=round(age))) + geom_line()
+```
+
+
+
