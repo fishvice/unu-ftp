@@ -401,6 +401,7 @@ dat <-
              dec = '.',           ## decimal sign
              sep = ' ',           ## column separator symbol
              skip = 0,            ## num lines at top to skip
+             stringsAsFactors = FALSE,
              comment.char = '#')  ## indicating comments
 @
 
@@ -415,7 +416,7 @@ Analoguous to \texttt{read.table} we have \texttt{write.table}:
 write.table(dat,
             file = 'nameOfFile', ## file name
             col.names = TRUE,    ## write header
-            row.names = FALSE    ## write row names
+            row.names = FALSE,   ## write row names
             quote = FALSE,       ## characters qouted?
             sep = ',',
             dec = '.')
@@ -576,14 +577,15 @@ $$\log(W) = \log(a)+ b*\log(L)$$
 \begin{frame}[fragile]
 \frametitle{Let's play a bit}
 <<eval=FALSE>>=
-wlFun <- function(a,b,dat){
+wlFun <- function(dat,a,b){
   return(list(p=ggplot(dat,aes(log(length),log(weight))) + 
                 geom_point() + 
-                geom_abline(intercept=-12,slope=3)+
+                geom_abline(intercept=log(a),slope=b)+
                 ylim(c(0,10)) + xlim(c(0,10)),
-              ss=sum((dat$weight - a - b*log(dat$length))^2)))
+              ss=sum((log(dat$weight) - log(a) - 
+                        b*log(dat$length))^2)))
 }
- minke %>% filter(!is.na(weight)) %>% wlFun(-12,3,.)
+ minke %>% filter(!is.na(weight)) %>% wlFun(exp(-12),3)
 @
 
 \end{frame}
